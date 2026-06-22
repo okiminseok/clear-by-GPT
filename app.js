@@ -64,6 +64,7 @@ const state = {
   recognition: null,
   lastMotivation: "",
   theme: loadJSON(STORAGE_KEYS.theme, "light"),
+  menuOpen: false,
 };
 
 document.documentElement.dataset.theme = state.theme;
@@ -205,6 +206,7 @@ function sanitizeSteps(steps, fallbackTitle) {
 
 function setRoute(route) {
   state.route = route;
+  state.menuOpen = false;
   render();
 }
 
@@ -266,11 +268,13 @@ function completeTask() {
 
 function restartHome() {
   state.route = "home";
+  state.menuOpen = false;
   render();
 }
 
 function openHistory(date = todayKey()) {
   state.route = "history";
+  state.menuOpen = false;
   state.selectedDate = date;
   const [year, month] = date.split("-").map(Number);
   state.calendarMonth = new Date(year, month - 1, 1);
@@ -296,7 +300,7 @@ function render() {
           ? renderHistory()
           : renderHome();
 
-  app.innerHTML = `${view}${state.isLoading ? renderLoading() : ""}${state.toast ? renderToast() : ""}`;
+  app.innerHTML = `${view}${state.menuOpen ? renderMenu() : ""}${state.isLoading ? renderLoading() : ""}${state.toast ? renderToast() : ""}`;
   bindEvents();
 }
 
@@ -304,11 +308,14 @@ function renderTopbar({ back = false } = {}) {
   const themeLabel = state.theme === "dark" ? "라이트 모드" : "다크 모드";
   return `
     <div class="topbar">
-      ${
-        back
-          ? `<button class="icon-button" data-action="home" aria-label="홈으로">←</button>`
-          : `<div class="topbar-spacer" aria-hidden="true"></div>`
-      }
+      <div class="topbar-left">
+        <button class="menu-button ${state.menuOpen ? "active" : ""}" data-action="toggle-menu" aria-label="목록 메뉴" aria-expanded="${state.menuOpen}">
+          <span class="menu-line"></span>
+          <span class="menu-line"></span>
+          <span class="menu-line"></span>
+        </button>
+        ${back ? `<button class="icon-button" data-action="home" aria-label="홈으로">←</button>` : ""}
+      </div>
       <div class="topbar-actions">
         ${
           state.route === "runner"
@@ -320,6 +327,19 @@ function renderTopbar({ back = false } = {}) {
         </button>
       </div>
     </div>
+  `;
+}
+
+function renderMenu() {
+  const active = state.activeTask;
+  return `
+    <div class="menu-backdrop" data-action="close-menu" aria-hidden="true"></div>
+    <aside class="side-menu" aria-label="목록 메뉴">
+      <button class="menu-item" data-action="ongoing-task" ${active ? "" : "disabled"}>
+        <span>진행중인 일</span>
+        <strong>${active ? "1" : "0"}</strong>
+      </button>
+    </aside>
   `;
 }
 
@@ -415,16 +435,17 @@ function renderFinish() {
 function renderHistory() {
   const counts = countByDate();
   const selectedItems = state.completedTasks.filter((task) => task.dateKey === state.selectedDate);
-  const selectedLabel = formatKoreanDate(state.selectedDate);
+  const selectedLabel = formatDotDate(state.selectedDate);
 
   return `
     <section class="history-page">
       ${renderTopbar({ back: true })}
+      <h1 class="history-title">끝낸 일</h1>
       <div class="calendar-panel">
         ${renderCalendar({ mini: false, selectedDate: state.selectedDate, month: state.calendarMonth, counts })}
       </div>
       <div class="history-list">
-        <h2>${selectedLabel} 끝낸 일</h2>
+        <h2>${selectedLabel}</h2>
         ${
           selectedItems.length
             ? selectedItems
@@ -446,6 +467,7 @@ function renderHistory() {
 
 function renderCalendar({ mini, selectedDate, month, counts }) {
   const first = startOfMonth(month);
+  const monthLabel = mini ? `${first.getFullYear()}년 ${first.getMonth() + 1}월` : `${first.getFullYear()}.${first.getMonth() + 1}`;
   const start = new Date(first);
   start.setDate(1 - first.getDay());
   const cells = Array.from({ length: 42 }, (_, offset) => {
@@ -473,7 +495,7 @@ function renderCalendar({ mini, selectedDate, month, counts }) {
             ? "<span></span>"
             : `<button class="triangle-button" data-action="prev-month" aria-label="이전 달"><span class="triangle left"></span></button>`
         }
-        <div class="month-label">${first.getFullYear()}년 ${first.getMonth() + 1}월</div>
+        <div class="month-label">${monthLabel}</div>
         ${
           mini
             ? "<span></span>"
@@ -535,6 +557,9 @@ function handleAction(element) {
   if (action === "done") completeCurrentStep();
   if (action === "handsfree") toggleHandsfree();
   if (action === "theme") toggleTheme();
+  if (action === "toggle-menu") toggleMenu();
+  if (action === "close-menu") closeMenu();
+  if (action === "ongoing-task") openOngoingTask();
 
   if (action === "select-date") {
     state.selectedDate = element.dataset.date;
@@ -553,6 +578,23 @@ function handleAction(element) {
   }
 }
 
+function toggleMenu() {
+  state.menuOpen = !state.menuOpen;
+  render();
+}
+
+function closeMenu() {
+  state.menuOpen = false;
+  render();
+}
+
+function openOngoingTask() {
+  if (!state.activeTask) return;
+  state.route = "runner";
+  state.menuOpen = false;
+  render();
+}
+
 function toggleTheme() {
   state.theme = state.theme === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = state.theme;
@@ -563,6 +605,11 @@ function toggleTheme() {
 function formatKoreanDate(key) {
   const [year, month, day] = key.split("-").map(Number);
   return `${year}년 ${month}월 ${day}일`;
+}
+
+function formatDotDate(key) {
+  const [year, month, day] = key.split("-").map(Number);
+  return `${year}.${month}.${day}`;
 }
 
 function formatTime(iso) {
