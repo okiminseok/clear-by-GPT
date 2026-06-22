@@ -307,7 +307,7 @@ function renderTopbar({ back = false } = {}) {
       ${
         back
           ? `<button class="icon-button" data-action="home" aria-label="홈으로">←</button>`
-          : `<div class="brand"><span class="brand-mark">✓</span><span>CLEAR</span></div>`
+          : `<div class="topbar-spacer" aria-hidden="true"></div>`
       }
       <div class="topbar-actions">
         ${
@@ -333,7 +333,7 @@ function renderHome() {
       ${renderTopbar()}
       <div class="hero">
         <h1>Clear</h1>
-        <p>부담스러운 일을 10초에서 1분짜리 조각으로 쪼개서, 지금 할 수 있는 한 칸만 보여줘.</p>
+        <p>미루고 있는 일을 적어줘!</p>
       </div>
 
       ${
@@ -353,7 +353,7 @@ function renderHome() {
       }
 
       <form class="task-form" data-action="new-task-form">
-        <textarea class="task-input" name="task" placeholder="미루고 있는 일을 적어줘. 예: 설거지, 방 정리, 컴활책 공부..."></textarea>
+        <textarea class="task-input" name="task" placeholder="예: 설거지, 방 정리, 컴활책 공부..."></textarea>
         <button class="primary-button" type="submit">작게 쪼개기</button>
       </form>
 
