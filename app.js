@@ -31,6 +31,21 @@ const encouragements = [
   "끝이 보이기 시작했어.",
 ];
 
+const stepEmojiRules = [
+  [/설거지|그릇|접시|컵|싱크|수세미|세제|헹/i, "🍽️"],
+  [/청소|쓸|닦|먼지|바닥|정리|치우|쓰레기/i, "🧹"],
+  [/책|공부|읽|문제|필기|강의|컴활|시험/i, "📚"],
+  [/메일|이메일|답장|보내|작성|문자|연락/i, "✉️"],
+  [/세탁|빨래|옷|수건|널|개/i, "🧺"],
+  [/샤워|씻|양치|세수|머리/i, "🛁"],
+  [/운동|스트레칭|걷|뛰|스쿼트/i, "💪"],
+  [/컴퓨터|노트북|파일|폴더|다운로드|업로드/i, "💻"],
+  [/돈|결제|입금|계좌|카드|영수증/i, "💳"],
+  [/예약|전화|문의|신청|확인/i, "📞"],
+  [/꺼내|준비|놓|자리|서기|앉/i, "🧍"],
+  [/마무리|끝|완료|체크/i, "✅"],
+];
+
 const voiceHints = [
   "완료라고 말하면 지금 일을 끝낸 것으로 표시해요.",
   "다음, 이전, 중지라고 말할 수 있어요.",
@@ -96,6 +111,12 @@ function escapeHTML(value) {
 
 function pick(list) {
   return list[Math.floor(Math.random() * list.length)];
+}
+
+function emojiForStep(step) {
+  const text = String(step || "");
+  const match = stepEmojiRules.find(([pattern]) => pattern.test(text));
+  return match ? match[1] : "✨";
 }
 
 function setToast(message) {
@@ -311,7 +332,7 @@ function renderHome() {
     <section class="home">
       ${renderTopbar()}
       <div class="hero">
-        <h1>CLEAR</h1>
+        <h1>Clear</h1>
         <p>부담스러운 일을 10초에서 1분짜리 조각으로 쪼개서, 지금 할 수 있는 한 칸만 보여줘.</p>
       </div>
 
@@ -332,7 +353,7 @@ function renderHome() {
       }
 
       <form class="task-form" data-action="new-task-form">
-        <textarea class="task-input" name="task" placeholder="미루고 있는 일을 적어줘. 예: 설거지, 방 정리, 이메일 답장"></textarea>
+        <textarea class="task-input" name="task" placeholder="미루고 있는 일을 적어줘. 예: 설거지, 방 정리, 컴활책 공부..."></textarea>
         <button class="primary-button" type="submit">작게 쪼개기</button>
       </form>
 
@@ -349,6 +370,7 @@ function renderRunner() {
   const index = task.currentIndex;
   const isDone = task.done.includes(index);
   const progress = taskProgress(task);
+  const emoji = emojiForStep(task.steps[index]);
 
   return `
     <section class="task-runner">
@@ -359,6 +381,7 @@ function renderRunner() {
       </div>
       <div class="progress-track"><div class="progress-fill" style="--progress:${progress}%"></div></div>
       <div class="step-stage">
+        <div class="step-emoji" aria-hidden="true">${emoji}</div>
         <p class="step-text">${escapeHTML(task.steps[index])}</p>
         <div class="motivation">${escapeHTML(state.lastMotivation || pick(encouragements))}</div>
       </div>
@@ -375,7 +398,9 @@ function renderFinish() {
   const message = state.finishMessage || finishMessages[0];
   return `
     <section class="finish-screen">
-      <div>
+      <div class="finish-progress progress-track"><div class="progress-fill" style="--progress:100%"></div></div>
+      <div class="finish-copy">
+        <div class="finish-icon" aria-hidden="true">✨</div>
         <h1 class="finish-title">${escapeHTML(message[0])}</h1>
         <p class="finish-subtitle">${escapeHTML(message[1])}</p>
       </div>

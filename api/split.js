@@ -39,9 +39,9 @@ module.exports = async function handler(req, res) {
         reasoning: { effort: "low" },
         input: [
           {
-            role: "system",
+            role: "developer",
             content:
-              "우리는 사람들이 부담스럽고 귀찮아서 미루는 일들을 10초-1분 사이에 할 수 있는 것들로 25개 이하로 쪼개서 쉽고 재밌게 보여주고, 다음 것을 바로바로 하고 싶게 만드는 앱이야. 유저가 할 일을 입력하면 이 사람의 행동을 유도하기 적합하게 쪼개줘. 가독성이 좋게 간단명료하게 표현해줘. 반드시 JSON 스키마에 맞게만 답해줘.",
+              "우리는 사람들이 부담스럽고 귀찮아서 미루는 일들을 10초-1분 사이에 할수있는 것들로 25개 이하로 쪼개서 쉽고 재밌게 보여서 접근하게 만들고 다음 것을 바로바로 하고싶게 만드는 앱이야. 유저가 할일을 입력하면 할일을 너가 이 사람의 행동을 유도하기 적합하게 쪼개줘. 대신 유저가 가독성이 좋을 수 있게 좀 더 간단명료하게 표현해줘.",
           },
           {
             role: "user",
@@ -64,7 +64,7 @@ module.exports = async function handler(req, res) {
                   items: {
                     type: "string",
                     minLength: 2,
-                  maxLength: 42,
+                    maxLength: 42,
                   },
                 },
               },
