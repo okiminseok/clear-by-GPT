@@ -1,0 +1,112 @@
+const MAX_STEPS = 25;
+
+module.exports = async function handler(req, res) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return res.status(405).json({ error: "POST만 사용할 수 있어요." });
+  }
+
+  const apiKey = process.env.CLEAR_API_KEY;
+  const model = process.env.OPENAI_MODEL || "gpt-5.4-mini";
+  if (!apiKey) {
+    return res.status(500).json({
+      error: "OpenAI API 키가 없어요. Vercel 환경변수 CLEAR_API_KEY에 키를 넣어주세요.",
+    });
+  }
+
+  let body = req.body || {};
+  if (typeof body === "string") {
+    try {
+      body = JSON.parse(body || "{}");
+    } catch {
+      return res.status(400).json({ error: "요청 JSON을 읽지 못했어요." });
+    }
+  }
+  const task = String(body.task || "").trim();
+  if (!task) {
+    return res.status(400).json({ error: "쪼갤 할 일을 보내주세요." });
+  }
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        reasoning: { effort: "low" },
+        input: [
+          {
+            role: "system",
+            content:
+              "You split overwhelming chores into tiny, concrete Korean actions. Return only JSON matching the schema. Each step must take 10 seconds to 1 minute, be physically actionable, and be concise. Write each step as a short, readable Korean action phrase, ideally 2 to 7 words, with no long explanations. Never exceed 25 steps.",
+          },
+          {
+            role: "user",
+            content: `할 일: ${task}\n이 일을 10초~1분 안에 할 수 있는 아주 작은 행동들로 쪼개줘. 25개 이하로.`,
+          },
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            name: "clear_split_steps",
+            strict: true,
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                steps: {
+                  type: "array",
+                  minItems: 3,
+                  maxItems: MAX_STEPS,
+                  items: {
+                    type: "string",
+                    minLength: 2,
+                  maxLength: 42,
+                  },
+                },
+              },
+              required: ["steps"],
+            },
+          },
+        },
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.error?.message || "OpenAI API 요청에 실패했어요.",
+      });
+    }
+
+    const parsed = parseOutputJSON(data);
+    const steps = Array.isArray(parsed.steps)
+      ? parsed.steps.map((step) => String(step).trim()).filter(Boolean).slice(0, MAX_STEPS)
+      : [];
+
+    if (!steps.length) {
+      return res.status(502).json({ error: "쪼갠 결과를 읽지 못했어요. 다시 시도해주세요." });
+    }
+
+    return res.status(200).json({ steps });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message || "서버에서 문제가 생겼어요.",
+    });
+  }
+};
+
+function parseOutputJSON(data) {
+  if (data.output_text) return JSON.parse(data.output_text);
+
+  const text = data.output
+    ?.flatMap((item) => item.content || [])
+    ?.map((content) => content.text || "")
+    ?.join("");
+
+  if (!text) throw new Error("OpenAI 응답이 비어 있어요.");
+  return JSON.parse(text);
+}
