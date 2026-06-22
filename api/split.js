@@ -7,7 +7,7 @@ module.exports = async function handler(req, res) {
   }
 
   const apiKey = process.env.CLEAR_API_KEY;
-  const model = process.env.OPENAI_MODEL || "gpt-5.4-mini";
+  const model = process.env.OPENAI_MODEL || "gpt-5-mini";
   if (!apiKey) {
     return res.status(500).json({
       error: "OpenAI API 키가 없어요. Vercel 환경변수 CLEAR_API_KEY에 키를 넣어주세요.",
@@ -41,11 +41,11 @@ module.exports = async function handler(req, res) {
           {
             role: "system",
             content:
-              "You split overwhelming chores into tiny, concrete Korean actions. Return only JSON matching the schema. Each step must take 10 seconds to 1 minute, be physically actionable, and be concise. Write each step as a short, readable Korean action phrase, ideally 2 to 7 words, with no long explanations. Never exceed 25 steps.",
+              "우리는 사람들이 부담스럽고 귀찮아서 미루는 일들을 10초-1분 사이에 할 수 있는 것들로 25개 이하로 쪼개서 쉽고 재밌게 보여주고, 다음 것을 바로바로 하고 싶게 만드는 앱이야. 유저가 할 일을 입력하면 이 사람의 행동을 유도하기 적합하게 쪼개줘. 가독성이 좋게 간단명료하게 표현해줘. 반드시 JSON 스키마에 맞게만 답해줘.",
           },
           {
             role: "user",
-            content: `할 일: ${task}\n이 일을 10초~1분 안에 할 수 있는 아주 작은 행동들로 쪼개줘. 25개 이하로.`,
+            content: `할 일: ${task}`,
           },
         ],
         text: {
