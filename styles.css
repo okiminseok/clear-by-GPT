@@ -1,22 +1,22 @@
 :root {
   color-scheme: light;
-  --ink: #20232d;
+  --ink: #24211d;
   --muted: #707584;
-  --paper: #f6f7fb;
+  --paper: #fbfaf6;
   --panel: rgba(255, 255, 255, 0.88);
   --panel-strong: #ffffff;
-  --line: rgba(32, 35, 45, 0.1);
+  --line: rgba(36, 33, 29, 0.13);
   --mint: #59d8bd;
   --mint-dark: #159c86;
   --coral: #ff7a7a;
   --blue: #6877ff;
   --yellow: #d8ff72;
-  --shadow: 0 22px 70px rgba(55, 62, 91, 0.14);
-  --button-shadow: 0 12px 30px rgba(55, 62, 91, 0.18);
+  --shadow: 0 22px 70px rgba(55, 48, 38, 0.14);
+  --button-shadow: 0 12px 30px rgba(55, 48, 38, 0.18);
   --radius: 8px;
   --field: #ffffff;
   --track: rgba(32, 35, 45, 0.09);
-  --hero-fill: linear-gradient(120deg, #1e2230 0%, #5265ff 48%, #14caa8 100%);
+  --hero-fill: linear-gradient(120deg, #24211d 0%, #4a4138 100%);
 }
 
 :root[data-theme="dark"] {
@@ -48,20 +48,15 @@ body {
   margin: 0;
   min-height: 100%;
   background:
-    radial-gradient(circle at 12% 10%, rgba(89, 216, 189, 0.24), transparent 30%),
-    radial-gradient(circle at 88% 18%, rgba(104, 119, 255, 0.18), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent),
+    linear-gradient(145deg, rgba(101, 198, 164, 0.16), transparent 32%),
+    linear-gradient(315deg, rgba(255, 121, 93, 0.16), transparent 34%),
     var(--paper);
   color: var(--ink);
   font-family:
-    "SF Pro Rounded",
-    "Pretendard Variable",
-    Pretendard,
-    ui-sans-serif,
-    system-ui,
+    "Noto Sans KR",
     -apple-system,
     BlinkMacSystemFont,
-  "Segoe UI",
+    system-ui,
     sans-serif;
   transition: background-color 180ms ease, color 180ms ease;
 }
@@ -95,6 +90,25 @@ button:disabled {
   justify-content: space-between;
   gap: 12px;
   min-height: 46px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.brand-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--yellow);
+  box-shadow: 4px 4px 0 var(--ink);
 }
 
 .icon-button,
@@ -139,25 +153,13 @@ button:disabled {
 }
 
 .theme-icon {
-  position: relative;
   display: block;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: currentColor;
-  box-shadow: inset -6px -4px 0 var(--panel);
-}
-
-:root[data-theme="dark"] .theme-icon {
-  box-shadow:
-    0 -10px 0 -7px currentColor,
-    7px -7px 0 -7px currentColor,
-    10px 0 0 -7px currentColor,
-    7px 7px 0 -7px currentColor,
-    0 10px 0 -7px currentColor,
-    -7px 7px 0 -7px currentColor,
-    -10px 0 0 -7px currentColor,
-    -7px -7px 0 -7px currentColor;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 3px var(--panel);
 }
 
 .mic-icon {
@@ -197,26 +199,30 @@ button:disabled {
 .home {
   display: grid;
   min-height: calc(100svh - 36px);
-  grid-template-rows: auto auto auto 1fr;
-  gap: 16px;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 18px;
 }
 
 .hero {
-  padding-top: 10px;
+  padding-top: 22px;
 }
 
 .hero h1 {
   margin: 0;
-  width: fit-content;
-  font-size: clamp(58px, 18vw, 116px);
+  color: var(--ink);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: clamp(44px, 16vw, 96px);
   font-weight: 950;
-  line-height: 0.86;
+  line-height: 0.88;
   letter-spacing: 0;
-  background: var(--hero-fill);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 18px 26px rgba(104, 119, 255, 0.16));
+  background: none;
+  filter: none;
 }
 
 .hero p {
@@ -231,20 +237,19 @@ button:disabled {
 .task-form {
   display: grid;
   gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 24px;
+  padding: 14px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
   background: var(--panel);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
+  box-shadow: 8px 8px 0 var(--ink);
 }
 
 .task-input {
   min-height: 108px;
   resize: vertical;
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 16px;
+  border-radius: 8px;
+  padding: 14px;
   outline: none;
   color: var(--ink);
   background: var(--field);
@@ -261,22 +266,22 @@ button:disabled {
 .secondary-button,
 .plain-button {
   min-height: 50px;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 0 18px;
   font-weight: 800;
 }
 
 .primary-button {
-  background: linear-gradient(135deg, var(--blue), var(--mint));
+  background: var(--ink);
   color: white;
-  box-shadow: var(--button-shadow);
+  box-shadow: none;
 }
 
 .secondary-button {
-  border: 1px solid var(--line);
-  background: var(--panel);
+  border: 1px solid var(--ink);
+  background: white;
   color: var(--ink);
-  box-shadow: 0 10px 24px rgba(55, 62, 91, 0.08);
+  box-shadow: none;
 }
 
 .plain-button {
@@ -288,10 +293,9 @@ button:disabled {
 .stat-strip,
 .history-list {
   border: 1px solid var(--line);
-  border-radius: 20px;
-  background: var(--panel);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 30px rgba(55, 48, 38, 0.08);
 }
 
 .resume-card {

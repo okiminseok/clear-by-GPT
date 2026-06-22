@@ -22,7 +22,7 @@ const encouragements = [
   "좋아, 하나 줄었다.",
   "방금 꽤 가볍게 넘겼어.",
   "이 속도면 금방이다.",
-  "작게 쪼개면 몸이 먼저 움직여.",
+  "한 조각만 보면 몸이 먼저 움직여.",
   "괜찮아. 다음 한 조각만.",
   "이미 시작한 사람이 제일 세다.",
   "깔끔하게 한 칸 전진.",
@@ -286,7 +286,7 @@ function renderTopbar({ back = false } = {}) {
       ${
         back
           ? `<button class="icon-button" data-action="home" aria-label="홈으로">←</button>`
-          : `<span class="topbar-spacer" aria-hidden="true"></span>`
+          : `<div class="brand"><span class="brand-mark">✓</span><span>CLEAR</span></div>`
       }
       <div class="topbar-actions">
         ${
@@ -295,7 +295,7 @@ function renderTopbar({ back = false } = {}) {
             : ""
         }
         <button class="theme-button" data-action="theme" aria-label="${themeLabel}">
-          <span class="theme-icon"></span>
+          <span class="theme-icon" aria-hidden="true"></span>
         </button>
       </div>
     </div>
@@ -312,7 +312,7 @@ function renderHome() {
       ${renderTopbar()}
       <div class="hero">
         <h1>CLEAR</h1>
-        <p>미루고 있는 일을 적어줘!</p>
+        <p>부담스러운 일을 10초에서 1분짜리 조각으로 쪼개서, 지금 할 수 있는 한 칸만 보여줘.</p>
       </div>
 
       ${
@@ -332,8 +332,8 @@ function renderHome() {
       }
 
       <form class="task-form" data-action="new-task-form">
-        <textarea class="task-input" name="task" placeholder="예: 설거지, 방 정리, 컴활책 공부..."></textarea>
-        <button class="primary-button" type="submit">가볍게 시작하기</button>
+        <textarea class="task-input" name="task" placeholder="미루고 있는 일을 적어줘. 예: 설거지, 방 정리, 이메일 답장"></textarea>
+        <button class="primary-button" type="submit">작게 쪼개기</button>
       </form>
 
       <div class="stat-strip" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
