@@ -147,11 +147,14 @@ button:disabled {
 }
 
 .menu-button {
+  grid-template-rows: repeat(3, 5px);
+  align-content: center;
   gap: 0;
   border-color: transparent;
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
+  row-gap: 1px;
 }
 
 .menu-line {
@@ -208,6 +211,10 @@ button:disabled {
   background: var(--panel);
   box-shadow: var(--shadow);
   backdrop-filter: blur(22px);
+}
+
+.side-menu-home {
+  top: 146px;
 }
 
 .menu-item {
@@ -376,7 +383,7 @@ button:disabled {
   resize: none;
   border: 0;
   border-radius: 0;
-  padding: 13px 68px 13px 16px;
+  padding: 13px 114px 13px 16px;
   outline: none;
   color: var(--ink);
   background: var(--field);
@@ -393,15 +400,17 @@ button:disabled {
   right: 10px;
   top: 50%;
   display: grid;
-  width: 46px;
+  width: 94px;
   height: 46px;
   place-items: center;
   border-radius: 12px;
   background: var(--mint);
   color: #17130f;
-  font-size: 28px;
+  font-size: 14px;
   font-weight: 800;
+  letter-spacing: 0;
   line-height: 1;
+  white-space: nowrap;
   transform: translateY(-50%);
   box-shadow: none;
 }

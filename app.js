@@ -374,7 +374,7 @@ function renderMenu() {
   const active = state.activeTask;
   return `
     <div class="menu-backdrop" data-action="close-menu" aria-hidden="true"></div>
-    <aside class="side-menu" aria-label="목록 메뉴">
+    <aside class="side-menu ${state.route === "home" ? "side-menu-home" : ""}" aria-label="목록 메뉴">
       <button class="menu-item" data-action="ongoing-task" ${active ? "" : "disabled"}>
         <span>진행중인 일</span>
         <strong>${active ? "1" : "0"}</strong>
@@ -390,10 +390,10 @@ function renderHome() {
 
   return `
     <section class="home">
-      ${renderTopbar()}
       <div class="ad-slot ad-slot-top" aria-label="광고 영역">
         <span>AD</span>
       </div>
+      ${renderTopbar()}
       <div class="hero">
         <h1>Clear</h1>
         <p>미루고 있는 일을 적어줘!</p>
@@ -417,7 +417,7 @@ function renderHome() {
 
       <form class="task-form" data-action="new-task-form">
         <textarea class="task-input" name="task" placeholder="예: 설거지, 방 정리, 컴활책 공부..."></textarea>
-        <button class="submit-arrow" type="submit" aria-label="작게 쪼개기">→</button>
+        <button class="submit-arrow" type="submit" aria-label="쪼개기">쪼개기 →</button>
       </form>
 
       <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
