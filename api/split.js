@@ -6,11 +6,12 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "POST만 사용할 수 있어요." });
   }
 
-  const apiKey = process.env.CLEAR_API_KEY;
+  const apiKey = process.env.CLEAR_API_KEY || process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_MODEL || "gpt-5-mini";
   if (!apiKey) {
     return res.status(500).json({
-      error: "OpenAI API 키가 없어요. Vercel 환경변수 CLEAR_API_KEY에 키를 넣어주세요.",
+      error:
+        "API 키가 연결되지 않았어요. Vercel 환경변수에 CLEAR_API_KEY를 추가한 뒤 Production으로 다시 배포해주세요.",
     });
   }
 
