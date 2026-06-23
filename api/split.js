@@ -1,11 +1,7 @@
 const MAX_STEPS = 25;
-const API_KEY_NAMES = [
-  "CLEAR_API_KEY",
-  "OPENAI_API_KEY",
-  "clear_api_key",
-  "CLEAR API KEY",
-  "clear api key",
-];
+const API_KEY_NAMES = ["ANTHROPIC_API_KEY"];
+const SYSTEM_PROMPT =
+  "할일을 10초-30초짜리 쉬운 행동으로 최대 25개 쪼개줘. 입력한 할일과 직접 관련 있는 행동만 자연스러운 순서로 써. 단계만 간단히, 설명·마무리 없이.";
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -14,11 +10,11 @@ module.exports = async function handler(req, res) {
   }
 
   const apiKey = getApiKey();
-  const model = process.env.OPENAI_MODEL || "gpt-5-mini";
+  const model = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5";
   if (!apiKey) {
     return res.status(500).json({
       error:
-        "API 키가 연결되지 않았어요. Vercel 환경변수에 CLEAR_API_KEY를 추가하고, 지금 테스트하는 배포 환경(Production 또는 Preview)을 다시 배포해주세요.",
+        "API 키가 연결되지 않았어요. Vercel 환경변수에 ANTHROPIC_API_KEY를 추가하고, 지금 테스트하는 배포 환경(Production 또는 Preview)을 다시 배포해주세요.",
       debug: getEnvDebug(),
     });
   }
@@ -37,20 +33,18 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model,
-        input: [
-          {
-            role: "developer",
-            content:
-              "할일을 10초-30초짜리 쉬운 행동으로 최대 25개 쪼개줘. 입력한 할일과 직접 관련 있는 행동만 자연스러운 순서로 써. 단계만 간단히, 설명·마무리 없이.",
-          },
+        max_tokens: 800,
+        system: SYSTEM_PROMPT,
+        messages: [
           {
             role: "user",
             content: task,
@@ -62,7 +56,7 @@ module.exports = async function handler(req, res) {
     const data = await response.json();
     if (!response.ok) {
       return res.status(response.status).json({
-        error: data.error?.message || "OpenAI API 요청에 실패했어요.",
+        error: data.error?.message || "Anthropic API 요청에 실패했어요.",
       });
     }
 
@@ -98,6 +92,12 @@ function getEnvDebug() {
 function parseOutputText(data) {
   if (data.output_text) return data.output_text;
 
+  if (Array.isArray(data.content)) {
+    return data.content
+      .map((content) => (content.type === "text" ? content.text || "" : ""))
+      .join("");
+  }
+
   return data.output
     ?.flatMap((item) => item.content || [])
     ?.map((content) => content.text || "")
@@ -107,7 +107,7 @@ function parseOutputText(data) {
 function parseOutputSteps(data) {
   const text = parseOutputText(data);
 
-  if (!text) throw new Error("OpenAI 응답이 비어 있어요.");
+  if (!text) throw new Error("Anthropic 응답이 비어 있어요.");
 
   try {
     const parsed = JSON.parse(text);

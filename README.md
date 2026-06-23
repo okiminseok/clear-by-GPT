@@ -1,20 +1,19 @@
 # CLEAR
 
-미루는 일을 10초-1분짜리 작은 행동으로 쪼개서 한 번에 하나씩 보여주는 웹 앱입니다.
+미루는 일을 10초-30초짜리 쉬운 행동으로 쪼개서 한 번에 하나씩 보여주는 웹 앱입니다.
 
 ## Vercel 환경변수
 
-OpenAI API 키를 Vercel 프로젝트 환경변수에 추가하세요.
+Anthropic API 키를 Vercel 프로젝트 환경변수에 추가하세요.
 
-- 권장 이름: `CLEAR_API_KEY`
-- 대체 가능 이름: `OPENAI_API_KEY`
-- 선택 모델명: `OPENAI_MODEL` 기본값은 `gpt-5-mini`
+- 필수 이름: `ANTHROPIC_API_KEY`
+- 선택 모델명: `ANTHROPIC_MODEL` 기본값은 `claude-haiku-4-5`
 
-Vercel에서는 `CLEAR_API_KEY`에 OpenAI API 키를 넣으면 됩니다. 이미 `OPENAI_API_KEY`로 넣어둔 경우도 앱이 읽을 수 있습니다. 기본 모델은 `gpt-5-mini`입니다.
+Vercel에서는 `ANTHROPIC_API_KEY`에 Anthropic API 키를 넣으면 됩니다. 기본 모델은 `claude-haiku-4-5`입니다.
 
 환경변수를 새로 추가하거나 이름을 바꾼 뒤에는 Vercel에서 지금 테스트하는 환경을 다시 배포해야 적용됩니다. Production URL이면 Production에, Preview URL이면 Preview에도 환경변수를 켜고 재배포하세요.
 
-앱에서 계속 API 키 오류가 뜨면 오류 문구 끝의 `감지된 키`를 확인하세요. `감지된 키: 없음`이면 현재 배포된 Vercel 서버 함수가 환경변수를 전혀 읽지 못하는 상태입니다.
+앱에서 계속 API 키 오류가 뜨면 오류 문구 끝의 `감지된 키`를 확인하세요. `감지된 키: 없음`이면 현재 배포된 Vercel 서버 함수가 `ANTHROPIC_API_KEY`를 읽지 못하는 상태입니다.
 
 ## 로컬 테스트
 
