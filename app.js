@@ -391,6 +391,9 @@ function renderHome() {
   return `
     <section class="home">
       ${renderTopbar()}
+      <div class="ad-slot ad-slot-top" aria-label="광고 영역">
+        <span>AD</span>
+      </div>
       <div class="hero">
         <h1>Clear</h1>
         <p>미루고 있는 일을 적어줘!</p>
@@ -414,12 +417,15 @@ function renderHome() {
 
       <form class="task-form" data-action="new-task-form">
         <textarea class="task-input" name="task" placeholder="예: 설거지, 방 정리, 컴활책 공부..."></textarea>
-        <button class="primary-button" type="submit">작게 쪼개기</button>
+        <button class="submit-arrow" type="submit" aria-label="작게 쪼개기">→</button>
       </form>
 
-      <div class="stat-strip" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
-        <span class="today-count"><strong>${todayCount}</strong><span>오늘 한 일</span></span>
-        ${renderCalendar({ mini: true, selectedDate: todayKey(), month: new Date(), counts })}
+      <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
+        <div class="reward-head">
+          <span>오늘 <strong>${todayCount}</strong>개 완료</span>
+          <span>${formatMonthLabel(new Date())}</span>
+        </div>
+        ${renderCalendar({ mini: true, selectedDate: todayKey(), month: new Date(), counts, showHeader: false })}
       </div>
     </section>
   `;
@@ -506,9 +512,9 @@ function renderHistory() {
   `;
 }
 
-function renderCalendar({ mini, selectedDate, month, counts }) {
+function renderCalendar({ mini, selectedDate, month, counts, showHeader = true }) {
   const first = startOfMonth(month);
-  const monthLabel = mini ? `${first.getFullYear()}년 ${first.getMonth() + 1}월` : `${first.getFullYear()}.${first.getMonth() + 1}`;
+  const monthLabel = formatMonthLabel(first);
   const start = new Date(first);
   start.setDate(1 - first.getDay());
   const cells = Array.from({ length: 42 }, (_, offset) => {
@@ -532,25 +538,35 @@ function renderCalendar({ mini, selectedDate, month, counts }) {
 
   return `
     <div class="${mini ? "mini-calendar" : "calendar"}">
-      <div class="calendar-header">
-        ${
-          mini
-            ? "<span></span>"
-            : `<button class="triangle-button" data-action="prev-month" aria-label="이전 달"><span class="triangle left"></span></button>`
-        }
-        <div class="month-label">${monthLabel}</div>
-        ${
-          mini
-            ? "<span></span>"
-            : `<button class="triangle-button" data-action="next-month" aria-label="다음 달"><span class="triangle right"></span></button>`
-        }
-      </div>
+      ${
+        showHeader
+          ? `
+            <div class="calendar-header">
+              ${
+                mini
+                  ? "<span></span>"
+                  : `<button class="triangle-button" data-action="prev-month" aria-label="이전 달"><span class="triangle left"></span></button>`
+              }
+              <div class="month-label">${monthLabel}</div>
+              ${
+                mini
+                  ? "<span></span>"
+                  : `<button class="triangle-button" data-action="next-month" aria-label="다음 달"><span class="triangle right"></span></button>`
+              }
+            </div>
+          `
+          : ""
+      }
       <div class="weekdays">
         <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
       </div>
       <div class="days-grid">${cells}</div>
     </div>
   `;
+}
+
+function formatMonthLabel(date) {
+  return `${date.getFullYear()}.${date.getMonth() + 1}`;
 }
 
 function renderLoading() {
