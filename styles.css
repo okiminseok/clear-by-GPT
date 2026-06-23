@@ -747,14 +747,16 @@ button:disabled {
 .step-stage {
   display: grid;
   align-content: center;
-  gap: 14px;
+  justify-items: center;
+  gap: 12px;
   min-height: 48svh;
   padding: 20px 4px;
   text-align: center;
 }
 
 .step-emoji {
-  font-size: clamp(58px, 18vw, 108px);
+  display: block;
+  font-size: clamp(44px, 13vw, 76px);
   line-height: 1;
 }
 
