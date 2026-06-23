@@ -50,6 +50,8 @@ const encouragements = [
   "끝이 보이기 시작했어.",
 ];
 
+const finishIcons = ["🎉", "✨", "🌟", "🔥", "💎", "🚀", "🏆", "⚡"];
+
 const state = {
   route: "home",
   activeTask: loadJSON(STORAGE_KEYS.active, null),
@@ -285,6 +287,7 @@ function completeTask() {
   state.activeTask = null;
   state.route = "finish";
   state.finishMessage = resolveFinishMessage(pickFinishMessage(todayDoneCount), task.title);
+  state.finishIcon = pick(finishIcons);
   persistCompleted();
   persistActive();
   stopHandsfree();
@@ -473,7 +476,7 @@ function renderFinish() {
         <div class="progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="100" style="--progress:100%"></div></div>
       </div>
       <div class="finish-copy">
-        <div class="finish-icon" aria-hidden="true">✨</div>
+        <div class="finish-icon" aria-hidden="true">${escapeHTML(state.finishIcon || pick(finishIcons))}</div>
         <h1 class="finish-title">${escapeHTML(message[0])}</h1>
         <p class="finish-subtitle">${escapeHTML(message[1])}</p>
       </div>
@@ -505,8 +508,11 @@ function renderHistory() {
                 .map(
                   (task) => `
                     <div class="history-item">
-                      <strong>${escapeHTML(task.title)}</strong>
-                      <span>${task.steps.length}개 조각 완료 · ${formatTime(task.completedAt)}</span>
+                      <div class="history-item-copy">
+                        <strong>${escapeHTML(task.title)}</strong>
+                        <span>${task.steps.length}개 조각 완료 · ${formatTime(task.completedAt)}</span>
+                      </div>
+                      <button class="history-delete" data-action="delete-completed" data-id="${escapeHTML(task.id)}" aria-label="${escapeHTML(task.title)} 삭제">×</button>
                     </div>
                   `,
                 )
@@ -626,6 +632,7 @@ function handleAction(element) {
   if (action === "close-menu") closeMenu();
   if (action === "ongoing-task") openOngoingTask();
   if (action === "dismiss-active") dismissActiveTask();
+  if (action === "delete-completed") deleteCompletedTask(element.dataset.id);
 
   if (action === "select-date") {
     state.selectedDate = element.dataset.date;
@@ -669,6 +676,17 @@ function dismissActiveTask() {
   state.menuOpen = false;
   persistActive();
   setToast("최근 작업을 지웠어.");
+}
+
+function deleteCompletedTask(id) {
+  if (!id) return;
+  const exists = state.completedTasks.some((task) => task.id === id);
+  if (!exists) return;
+  const confirmed = window.confirm("끝낸 일을 지울까요?");
+  if (!confirmed) return;
+  state.completedTasks = state.completedTasks.filter((task) => task.id !== id);
+  persistCompleted();
+  setToast("끝낸 일을 지웠어.");
 }
 
 function toggleTheme() {

@@ -943,7 +943,9 @@ button:disabled {
 
 .history-item {
   display: grid;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 10px;
   padding: 12px 0;
   border-bottom: 1px solid var(--line);
 }
@@ -952,13 +954,38 @@ button:disabled {
   border-bottom: 0;
 }
 
+.history-item-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
 .history-item strong {
   font-size: 17px;
+  overflow-wrap: anywhere;
 }
 
 .history-item span {
   color: var(--muted);
   font-size: 13px;
+}
+
+.history-delete {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--muted);
+  font-size: 23px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.history-delete:hover {
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink);
 }
 
 .empty {
