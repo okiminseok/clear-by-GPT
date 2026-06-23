@@ -227,6 +227,16 @@ function sanitizeSteps(steps, fallbackTitle) {
   ];
 }
 
+function splitStepVisual(step) {
+  const value = String(step || "").trim();
+  const match = value.match(/^(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)\s*(.+)$/u);
+  if (!match) return { icon: "✨", text: value };
+  return {
+    icon: match[1],
+    text: match[2].trim() || value,
+  };
+}
+
 function setRoute(route) {
   state.route = route;
   state.menuOpen = false;
@@ -442,6 +452,7 @@ function renderRunner() {
   const index = task.currentIndex;
   const isDone = task.done.includes(index);
   const progress = taskProgress(task);
+  const step = splitStepVisual(task.steps[index]);
 
   return `
     <section class="task-runner">
@@ -452,7 +463,8 @@ function renderRunner() {
       </div>
       <div class="progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="${progress}" style="--progress:${progress}%"></div></div>
       <div class="step-stage">
-        <p class="step-text">${escapeHTML(task.steps[index])}</p>
+        <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
+        <p class="step-text">${escapeHTML(step.text)}</p>
         <div class="motivation">${escapeHTML(state.lastMotivation || pick(encouragements))}</div>
       </div>
       <div class="runner-actions">

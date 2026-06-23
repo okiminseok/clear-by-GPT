@@ -1,7 +1,7 @@
 const MAX_STEPS = 25;
 const API_KEY_NAMES = ["ANTHROPIC_API_KEY"];
 const SYSTEM_PROMPT =
-  "할일을 10초-30초짜리 쉬운 행동으로 최대 25개 쪼개줘. 입력한 할일과 직접 관련 있는 행동만 자연스러운 순서로 써. 단계만 간단히, 설명·마무리 없이.";
+  '할일을 10초-30초짜리 쉬운 행동으로 최대 25개 쪼개줘. 추상적인 말보다 바로 할 수 있는 구체적인 행동으로 써. 직접 관련 없는 행동이나 추측한 상황은 넣지 마. 각 줄은 "이모지 행동" 형식으로, 이모지는 1개만. 설명·마무리 없이.';
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
