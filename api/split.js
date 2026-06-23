@@ -49,7 +49,7 @@ module.exports = async function handler(req, res) {
           {
             role: "developer",
             content:
-              "할일을 10초-1분짜리 작은 행동으로 최대 25개 쪼개줘. 단계만 간단히, 설명·마무리 없이.",
+              "할일을 10초-30초짜리 작은 행동으로 최대 25개 쪼개줘. 단계만 간단히, 설명·마무리 없이.",
           },
           {
             role: "user",
