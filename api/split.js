@@ -11,7 +11,7 @@ module.exports = async function handler(req, res) {
   if (!apiKey) {
     return res.status(500).json({
       error:
-        "API 키가 연결되지 않았어요. Vercel 환경변수에 CLEAR_API_KEY를 추가한 뒤 Production으로 다시 배포해주세요.",
+        "API 키가 연결되지 않았어요. Vercel 환경변수에 CLEAR_API_KEY를 추가하고, 지금 테스트하는 배포 환경(Production 또는 Preview)을 다시 배포해주세요.",
     });
   }
 
