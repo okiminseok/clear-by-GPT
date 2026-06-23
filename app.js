@@ -51,6 +51,7 @@ const encouragements = [
 ];
 
 const finishIcons = ["🎉", "✨", "🌟", "🔥", "💎", "🚀", "🏆", "⚡"];
+const stepFallbackEmojis = ["✨", "✦", "💫", "🌟", "⚡", "🎯"];
 
 const state = {
   route: "home",
@@ -230,11 +231,19 @@ function sanitizeSteps(steps, fallbackTitle) {
 function splitStepVisual(step) {
   const value = String(step || "").trim();
   const match = value.match(/^(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)\s*(.+)$/u);
-  if (!match) return { icon: "✨", text: value };
+  if (!match) return { icon: fallbackStepEmoji(value), text: value };
   return {
     icon: match[1],
     text: match[2].trim() || value,
   };
+}
+
+function fallbackStepEmoji(value) {
+  let hash = 0;
+  for (const char of String(value || "")) {
+    hash = (hash * 31 + char.codePointAt(0)) >>> 0;
+  }
+  return stepFallbackEmojis[hash % stepFallbackEmojis.length];
 }
 
 function setRoute(route) {

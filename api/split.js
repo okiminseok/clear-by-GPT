@@ -1,5 +1,6 @@
 const MAX_STEPS = 25;
 const API_KEY_NAMES = ["ANTHROPIC_API_KEY"];
+const FALLBACK_EMOJIS = ["✨", "✦", "💫", "🌟", "⚡", "🎯"];
 const SYSTEM_PROMPT =
   `미루는 일을 시작·완주하게 돕는다.
 
@@ -177,18 +178,59 @@ function extractJSONBlock(text) {
 }
 
 function cleanSteps(values) {
+  let lastFallback = "";
   return values
-    .map(formatStep)
+    .map((step) => {
+      const formatted = formatStep(step, lastFallback);
+      if (formatted.fallbackUsed) lastFallback = formatted.emoji;
+      return formatted.value;
+    })
     .filter(Boolean)
     .slice(0, MAX_STEPS);
 }
 
-function formatStep(step) {
+function formatStep(step, lastFallback = "") {
   if (step && typeof step === "object") {
     const text = String(step.text || step.action || step.step || "").trim();
-    const emoji = String(step.emoji || step.icon || "").trim();
-    return [emoji, text].filter(Boolean).join(" ").trim();
+    const picked = normalizeEmoji(step.emoji || step.icon, lastFallback);
+    return {
+      value: [picked.emoji, text].filter(Boolean).join(" ").trim(),
+      emoji: picked.emoji,
+      fallbackUsed: picked.fallbackUsed,
+    };
   }
 
-  return String(step || "").trim();
+  const value = String(step || "").trim();
+  const match = value.match(/^(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)\s*(.+)$/u);
+  if (!match) {
+    const picked = pickFallbackEmoji(lastFallback);
+    return {
+      value: `${picked} ${value}`.trim(),
+      emoji: picked,
+      fallbackUsed: true,
+    };
+  }
+
+  const picked = normalizeEmoji(match[1], lastFallback);
+  return {
+    value: [picked.emoji, match[2].trim()].filter(Boolean).join(" ").trim(),
+    emoji: picked.emoji,
+    fallbackUsed: picked.fallbackUsed,
+  };
+}
+
+function normalizeEmoji(value, lastFallback = "") {
+  const emoji = String(value || "").trim();
+  const match = emoji.match(/^(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)$/u);
+  if (match && [...emoji].length <= 4) {
+    return { emoji, fallbackUsed: false };
+  }
+
+  const fallback = pickFallbackEmoji(lastFallback);
+  return { emoji: fallback, fallbackUsed: true };
+}
+
+function pickFallbackEmoji(lastFallback = "") {
+  const candidates = FALLBACK_EMOJIS.filter((emoji) => emoji !== lastFallback);
+  return candidates[Math.floor(Math.random() * candidates.length)] || FALLBACK_EMOJIS[0];
 }
