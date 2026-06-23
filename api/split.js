@@ -122,29 +122,58 @@ function parseOutputSteps(data) {
 
   if (!text) throw new Error("Anthropic 응답이 비어 있어요.");
 
-  try {
-    const parsed = JSON.parse(text);
-    const source = Array.isArray(parsed) ? parsed : parsed.steps;
-    if (Array.isArray(source)) return cleanSteps(source);
-  } catch {
-    // Playground-style text output is expected here.
-  }
+  const parsedSteps = parseJSONSteps(text);
+  if (parsedSteps.length) return parsedSteps;
 
   return cleanSteps(
-    text
+    stripCodeFence(text)
       .split(/\r?\n/)
       .map((line) =>
         line
           .trim()
-          .replace(/^```(?:json|text)?/i, "")
-          .replace(/^```$/, "")
           .replace(/^[-*•]\s+/, "")
           .replace(/^\d+[.)]\s+/, "")
           .replace(/^\[[ xX]\]\s+/, "")
           .replace(/^["'“”‘’]+|["'“”‘’]+$/g, ""),
       )
-      .filter((line) => line && !/^steps?\s*[:：]?$/i.test(line)),
+      .filter((line) => line && !/^(steps?|[\]{}[,])\s*[:：]?$/i.test(line)),
   );
+}
+
+function parseJSONSteps(text) {
+  const candidates = [
+    text,
+    stripCodeFence(text),
+    extractJSONBlock(stripCodeFence(text)),
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      const source = Array.isArray(parsed) ? parsed : parsed.steps;
+      if (Array.isArray(source)) return cleanSteps(source);
+    } catch {
+      // Try the next candidate.
+    }
+  }
+
+  return [];
+}
+
+function stripCodeFence(text) {
+  return String(text || "")
+    .trim()
+    .replace(/^```(?:json|text)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+}
+
+function extractJSONBlock(text) {
+  const value = String(text || "");
+  const start = value.indexOf("{");
+  const end = value.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) return "";
+  return value.slice(start, end + 1);
 }
 
 function cleanSteps(values) {
