@@ -10,12 +10,31 @@ const MAX_STEPS = 25;
 const app = document.querySelector("#app");
 
 const finishMessages = [
-  ["다 했다", "생각보다 별거 아니었지?"],
-  ["끝났다", "시작하니까 길이 생겼지?"],
-  ["CLEAR", "오늘의 너, 꽤 멋있다."],
-  ["해냈다", "마음보다 일이 작았네."],
-  ["정리 완료", "이제 머리가 조금 조용해졌을 거야."],
-  ["클리어", "한 칸 넘겼다. 충분히 잘했다."],
+  ["{{task}}, 해냈어!", "별거 아니었지? 이미 잘 하고 있어 😊"],
+  ["역시!", "시작했으니 이미 이긴 거야 💪"],
+  ["최고야!", "오늘 하루 이 순간을 기억해 🌟"],
+  ["잘했어!", "작은 것들이 쌓여서 큰 게 돼 🏆"],
+  ["됐다.", "복잡하게 생각할 거 없었네 🙂"],
+  ["이게 너야.", "결심한 걸 해내는 사람 💪"],
+  ["또 했네.", "이게 쌓이면 습관이 되는 거야 🌱", { minTodayCount: 2 }],
+  ["끄으읏!", "미루던 게 드디어 끝, 속이 시원하지 🫠"],
+  ["오, 진짜 했다.", "너도 좀 놀랐지? 😏"],
+  ["수고했어.", "오늘 너 자신한테 잘해준 거야 🤍"],
+  ["잘 해냈어.", "이런 날들이 모여서 좋은 하루가 돼 🌤️"],
+  ["끝.", "다음 일도 이렇게 가볍게 ✦"],
+  ["정리됐다.", "머릿속도 같이 가벼워졌을 거야"],
+  ["1승 추가.", "이런 1승들이 결국 인생을 바꿔 ⚔️"],
+  ["방금 그거 봤어?", "망설이다가 결국 해낸 거 멋있었어 👀"],
+  ["미루고 싶었을 텐데 안 미뤘네.", "그게 진짜 어려운 거였어 🎖️"],
+  ["굿.", "그냥 굿이야 👍"],
+  ["방금 너 좀 멋있었어.", "너도 알아챘는지 모르겠지만 😎"],
+  ["이거 했으니 다음 것도 쉬울 거야.", "탄력 받았어 🛹"],
+  ["흐름 탔다.", "이 기세로 하나만 더 가볼까? 😏"],
+  ["고요해졌다.", "할 일이 사라지니까 마음도 조용해져 🌙"],
+  ["미루기 1패 추가.", "오늘은 네가 이겼다 🥊"],
+  ["잘했어, 진짜로.", "더 꾸밀 말 없어 🤍"],
+  ["이제 좀 쉬어.", "그럴 자격 충분히 있어 🛋️"],
+  ["오늘의 퍼즐 한 조각 맞췄다.", "그림이 조금씩 완성되고 있어 🧩"],
 ];
 
 const encouragements = [
@@ -31,27 +50,6 @@ const encouragements = [
   "끝이 보이기 시작했어.",
 ];
 
-const stepEmojiRules = [
-  [/설거지|그릇|접시|컵|싱크|수세미|세제|헹/i, "🍽️"],
-  [/청소|쓸|닦|먼지|바닥|정리|치우|쓰레기/i, "🧹"],
-  [/책|공부|읽|문제|필기|강의|컴활|시험/i, "📚"],
-  [/메일|이메일|답장|보내|작성|문자|연락/i, "✉️"],
-  [/세탁|빨래|옷|수건|널|개/i, "🧺"],
-  [/샤워|씻|양치|세수|머리/i, "🛁"],
-  [/운동|스트레칭|걷|뛰|스쿼트/i, "💪"],
-  [/컴퓨터|노트북|파일|폴더|다운로드|업로드/i, "💻"],
-  [/돈|결제|입금|계좌|카드|영수증/i, "💳"],
-  [/예약|전화|문의|신청|확인/i, "📞"],
-  [/꺼내|준비|놓|자리|서기|앉/i, "🧍"],
-  [/마무리|끝|완료|체크/i, "✅"],
-];
-
-const voiceHints = [
-  "완료라고 말하면 지금 일을 끝낸 것으로 표시해요.",
-  "다음, 이전, 중지라고 말할 수 있어요.",
-  "핸즈프리 켜짐. 지금 할 일을 읽어줄게요.",
-];
-
 const state = {
   route: "home",
   activeTask: loadJSON(STORAGE_KEYS.active, null),
@@ -65,6 +63,7 @@ const state = {
   lastMotivation: "",
   theme: loadJSON(STORAGE_KEYS.theme, "light"),
   menuOpen: false,
+  previousProgress: 0,
 };
 
 document.documentElement.dataset.theme = state.theme;
@@ -114,10 +113,19 @@ function pick(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-function emojiForStep(step) {
-  const text = String(step || "");
-  const match = stepEmojiRules.find(([pattern]) => pattern.test(text));
-  return match ? match[1] : "✨";
+function pickFinishMessage(todayCount) {
+  const candidates = finishMessages.filter((message) => {
+    const option = message[2];
+    return !option?.minTodayCount || todayCount >= option.minTodayCount;
+  });
+  return pick(candidates);
+}
+
+function resolveFinishMessage(message, taskTitle) {
+  return [
+    String(message[0]).replace("{{task}}", taskTitle),
+    String(message[1]).replace("{{task}}", taskTitle),
+  ];
 }
 
 function setToast(message) {
@@ -176,8 +184,9 @@ async function createTask(rawTitle) {
     };
     state.route = "runner";
     state.lastMotivation = pick(encouragements);
+    state.previousProgress = 0;
     persistActive();
-    if (state.handsfree) speakCurrentStep();
+    if (state.handsfree) startRecognition();
   } catch (error) {
     setToast(error.message || "잠깐 삐끗했어요. 다시 눌러봐.");
   } finally {
@@ -225,11 +234,12 @@ function setRoute(route) {
 function moveStep(delta) {
   const task = state.activeTask;
   if (!task) return;
+  state.previousProgress = taskProgress(task);
   task.currentIndex = clamp(task.currentIndex + delta, 0, task.steps.length - 1);
   task.updatedAt = new Date().toISOString();
   persistActive();
   render();
-  if (state.handsfree) speakCurrentStep();
+  if (state.handsfree) startRecognition();
 }
 
 function completeCurrentStep() {
@@ -238,6 +248,7 @@ function completeCurrentStep() {
 
   const index = task.currentIndex;
   if (!task.done.includes(index)) {
+    state.previousProgress = taskProgress(task);
     task.done.push(index);
     task.done.sort((a, b) => a - b);
     state.lastMotivation = pick(encouragements);
@@ -253,12 +264,13 @@ function completeCurrentStep() {
   task.updatedAt = new Date().toISOString();
   persistActive();
   render();
-  if (state.handsfree) speakCurrentStep();
+  if (state.handsfree) startRecognition();
 }
 
 function completeTask() {
   const task = state.activeTask;
   if (!task) return;
+  state.previousProgress = taskProgress(task);
 
   const finishedTask = {
     id: task.id,
@@ -269,9 +281,10 @@ function completeTask() {
   };
 
   state.completedTasks = [finishedTask, ...state.completedTasks].slice(0, 400);
+  const todayDoneCount = state.completedTasks.filter((completed) => completed.dateKey === todayKey()).length;
   state.activeTask = null;
   state.route = "finish";
-  state.finishMessage = pick(finishMessages);
+  state.finishMessage = resolveFinishMessage(pickFinishMessage(todayDoneCount), task.title);
   persistCompleted();
   persistActive();
   stopHandsfree();
@@ -314,6 +327,21 @@ function render() {
 
   app.innerHTML = `${view}${state.menuOpen ? renderMenu() : ""}${state.isLoading ? renderLoading() : ""}${state.toast ? renderToast() : ""}`;
   bindEvents();
+  animateProgressBars();
+}
+
+function animateProgressBars() {
+  const fills = app.querySelectorAll(".progress-fill[data-progress]");
+  fills.forEach((fill) => {
+    const next = fill.dataset.progress;
+    const from = fill.dataset.fromProgress || next;
+    fill.style.setProperty("--progress", `${from}%`);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        fill.style.setProperty("--progress", `${next}%`);
+      });
+    });
+  });
 }
 
 function renderTopbar({ back = false } = {}) {
@@ -402,7 +430,6 @@ function renderRunner() {
   const index = task.currentIndex;
   const isDone = task.done.includes(index);
   const progress = taskProgress(task);
-  const emoji = emojiForStep(task.steps[index]);
 
   return `
     <section class="task-runner">
@@ -411,16 +438,15 @@ function renderRunner() {
         <span>${escapeHTML(task.title)}</span>
         <strong>${progress}%</strong>
       </div>
-      <div class="progress-track"><div class="progress-fill" style="--progress:${progress}%"></div></div>
+      <div class="progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="${progress}" style="--progress:${progress}%"></div></div>
       <div class="step-stage">
-        <div class="step-emoji" aria-hidden="true">${emoji}</div>
         <p class="step-text">${escapeHTML(task.steps[index])}</p>
         <div class="motivation">${escapeHTML(state.lastMotivation || pick(encouragements))}</div>
       </div>
       <div class="runner-actions">
         <button class="secondary-button" data-action="prev" ${index === 0 ? "disabled" : ""}>이전</button>
-        <button class="done-button ${isDone ? "completed" : ""}" data-action="done">${isDone ? "완료됨" : "했어"}</button>
         <button class="secondary-button" data-action="next" ${index === task.steps.length - 1 ? "disabled" : ""}>다음</button>
+        <button class="done-button ${isDone ? "completed" : ""}" data-action="done">${isDone ? "완료됨" : "했어"}</button>
       </div>
     </section>
   `;
@@ -430,7 +456,10 @@ function renderFinish() {
   const message = state.finishMessage || finishMessages[0];
   return `
     <section class="finish-screen">
-      <div class="finish-progress progress-track"><div class="progress-fill" style="--progress:100%"></div></div>
+      <div class="finish-progress-row">
+        <div class="finish-progress progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="100" style="--progress:100%"></div></div>
+        <strong>100%</strong>
+      </div>
       <div class="finish-copy">
         <div class="finish-icon" aria-hidden="true">✨</div>
         <h1 class="finish-title">${escapeHTML(message[0])}</h1>
@@ -488,12 +517,14 @@ function renderCalendar({ mini, selectedDate, month, counts }) {
     const key = dateKey(date);
     const count = counts[key] || 0;
     const outside = date.getMonth() !== first.getMonth();
+    const weekday = date.getDay();
+    const weekendClass = weekday === 0 ? "sunday" : weekday === 6 ? "saturday" : "";
     const tag = mini ? "div" : "button";
     const attrs = mini ? "" : `data-action="select-date" data-date="${key}" aria-label="${key}, 완료 ${count}개"`;
     return `
-      <${tag} class="day-cell ${outside ? "outside" : ""} ${count ? "has-count" : ""} ${key === selectedDate ? "selected" : ""}"
+      <${tag} class="day-cell ${weekendClass} ${outside ? "outside" : ""} ${count ? "has-count" : ""} ${key === selectedDate ? "selected" : ""}"
         ${attrs}>
-        <span>${date.getDate()}</span>
+        <span class="day-number">${date.getDate()}</span>
         ${count ? `<span class="count">${count}</span>` : ""}
       </${tag}>
     `;
@@ -643,13 +674,11 @@ function toggleHandsfree() {
 function startHandsfree() {
   state.handsfree = true;
   render();
-  speak(pick(voiceHints), () => speakCurrentStep());
   startRecognition();
 }
 
 function stopHandsfree() {
   state.handsfree = false;
-  window.speechSynthesis?.cancel();
   if (state.recognition) {
     state.recognition.onend = null;
     state.recognition.stop();
@@ -657,33 +686,11 @@ function stopHandsfree() {
   }
 }
 
-function speakCurrentStep() {
-  const task = state.activeTask;
-  if (!state.handsfree || !task) return;
-  const text = `${task.currentIndex + 1}번째. ${task.steps[task.currentIndex]}`;
-  speak(text);
-}
-
-function speak(text, onEnd) {
-  if (!("speechSynthesis" in window)) {
-    if (onEnd) onEnd();
-    return;
-  }
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "ko-KR";
-  utterance.rate = 1;
-  utterance.pitch = 1.04;
-  utterance.onend = () => {
-    if (onEnd) onEnd();
-  };
-  window.speechSynthesis.speak(utterance);
-}
-
 function startRecognition() {
+  if (state.recognition) return;
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    setToast("이 브라우저는 음성 명령을 지원하지 않아. 읽어주기는 계속할게.");
+    setToast("이 브라우저는 음성 명령을 지원하지 않아. 버튼은 계속 쓸 수 있어.");
     return;
   }
 
@@ -720,7 +727,7 @@ function startRecognition() {
 
 function handleVoiceCommand(text) {
   if (!state.activeTask) return;
-  if (text.includes("완료") || text.includes("했어") || text.includes("끝")) {
+  if (text.includes("완료") || text.includes("했어") || text.includes("했다고") || text.includes("그래") || text.includes("응") || text.includes("오케이") || text.includes("ok")) {
     completeCurrentStep();
   } else if (text.includes("다음")) {
     moveStep(1);

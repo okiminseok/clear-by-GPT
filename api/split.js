@@ -45,7 +45,6 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model,
-        reasoning: { effort: "low" },
         input: [
           {
             role: "developer",
@@ -54,33 +53,9 @@ module.exports = async function handler(req, res) {
           },
           {
             role: "user",
-            content: `할 일: ${task}`,
+            content: task,
           },
         ],
-        text: {
-          format: {
-            type: "json_schema",
-            name: "clear_split_steps",
-            strict: true,
-            schema: {
-              type: "object",
-              additionalProperties: false,
-              properties: {
-                steps: {
-                  type: "array",
-                  minItems: 3,
-                  maxItems: MAX_STEPS,
-                  items: {
-                    type: "string",
-                    minLength: 2,
-                    maxLength: 42,
-                  },
-                },
-              },
-              required: ["steps"],
-            },
-          },
-        },
       }),
     });
 
@@ -91,10 +66,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const parsed = parseOutputJSON(data);
-    const steps = Array.isArray(parsed.steps)
-      ? parsed.steps.map((step) => String(step).trim()).filter(Boolean).slice(0, MAX_STEPS)
-      : [];
+    const steps = parseOutputSteps(data);
 
     if (!steps.length) {
       return res.status(502).json({ error: "쪼갠 결과를 읽지 못했어요. 다시 시도해주세요." });
@@ -123,14 +95,48 @@ function getEnvDebug() {
   };
 }
 
-function parseOutputJSON(data) {
-  if (data.output_text) return JSON.parse(data.output_text);
+function parseOutputText(data) {
+  if (data.output_text) return data.output_text;
 
-  const text = data.output
+  return data.output
     ?.flatMap((item) => item.content || [])
     ?.map((content) => content.text || "")
     ?.join("");
+}
+
+function parseOutputSteps(data) {
+  const text = parseOutputText(data);
 
   if (!text) throw new Error("OpenAI 응답이 비어 있어요.");
-  return JSON.parse(text);
+
+  try {
+    const parsed = JSON.parse(text);
+    const source = Array.isArray(parsed) ? parsed : parsed.steps;
+    if (Array.isArray(source)) return cleanSteps(source);
+  } catch {
+    // Playground-style text output is expected here.
+  }
+
+  return cleanSteps(
+    text
+      .split(/\r?\n/)
+      .map((line) =>
+        line
+          .trim()
+          .replace(/^```(?:json|text)?/i, "")
+          .replace(/^```$/, "")
+          .replace(/^[-*•]\s+/, "")
+          .replace(/^\d+[.)]\s+/, "")
+          .replace(/^\[[ xX]\]\s+/, "")
+          .replace(/^["'“”‘’]+|["'“”‘’]+$/g, ""),
+      )
+      .filter((line) => line && !/^steps?\s*[:：]?$/i.test(line)),
+  );
+}
+
+function cleanSteps(values) {
+  return values
+    .map((step) => String(step || "").trim())
+    .filter(Boolean)
+    .slice(0, MAX_STEPS);
 }
