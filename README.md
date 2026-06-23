@@ -14,6 +14,8 @@ Vercel에서는 `CLEAR_API_KEY`에 OpenAI API 키를 넣으면 됩니다. 이미
 
 환경변수를 새로 추가하거나 이름을 바꾼 뒤에는 Vercel에서 지금 테스트하는 환경을 다시 배포해야 적용됩니다. Production URL이면 Production에, Preview URL이면 Preview에도 환경변수를 켜고 재배포하세요.
 
+앱에서 계속 API 키 오류가 뜨면 오류 문구 끝의 `감지된 키`를 확인하세요. `감지된 키: 없음`이면 현재 배포된 Vercel 서버 함수가 환경변수를 전혀 읽지 못하는 상태입니다.
+
 ## 로컬 테스트
 
 정적 화면만 확인하려면 `index.html`을 열면 됩니다. `/api/split`까지 함께 테스트하려면 Vercel CLI 또는 Node 서버리스 환경에서 실행하세요.

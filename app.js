@@ -162,7 +162,7 @@ async function createTask(rawTitle) {
     });
 
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || "할 일을 쪼개지 못했어요.");
+    if (!response.ok) throw new Error(formatAPIError(payload));
 
     const steps = sanitizeSteps(payload.steps, title);
     state.activeTask = {
@@ -184,6 +184,18 @@ async function createTask(rawTitle) {
     state.isLoading = false;
     render();
   }
+}
+
+function formatAPIError(payload) {
+  const message = payload?.error || "할 일을 쪼개지 못했어요.";
+  if (!payload?.debug?.checked) return message;
+
+  const detected = Object.entries(payload.debug.checked)
+    .filter(([, exists]) => exists)
+    .map(([name]) => name);
+  const env = payload.debug.vercelEnv || "unknown";
+  const keyStatus = detected.length ? `감지된 키: ${detected.join(", ")}` : "감지된 키: 없음";
+  return `${message} (${keyStatus}, 환경: ${env})`;
 }
 
 function sanitizeSteps(steps, fallbackTitle) {

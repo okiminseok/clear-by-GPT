@@ -1,4 +1,11 @@
 const MAX_STEPS = 25;
+const API_KEY_NAMES = [
+  "CLEAR_API_KEY",
+  "OPENAI_API_KEY",
+  "clear_api_key",
+  "CLEAR API KEY",
+  "clear api key",
+];
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -6,12 +13,13 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "POST만 사용할 수 있어요." });
   }
 
-  const apiKey = process.env.CLEAR_API_KEY || process.env.OPENAI_API_KEY;
+  const apiKey = getApiKey();
   const model = process.env.OPENAI_MODEL || "gpt-5-mini";
   if (!apiKey) {
     return res.status(500).json({
       error:
         "API 키가 연결되지 않았어요. Vercel 환경변수에 CLEAR_API_KEY를 추가하고, 지금 테스트하는 배포 환경(Production 또는 Preview)을 다시 배포해주세요.",
+      debug: getEnvDebug(),
     });
   }
 
@@ -99,6 +107,21 @@ module.exports = async function handler(req, res) {
     });
   }
 };
+
+function getApiKey() {
+  const foundName = API_KEY_NAMES.find((name) => process.env[name]);
+  return foundName ? process.env[foundName] : "";
+}
+
+function getEnvDebug() {
+  return {
+    vercelEnv: process.env.VERCEL_ENV || "unknown",
+    checked: API_KEY_NAMES.reduce((acc, name) => {
+      acc[name] = Boolean(process.env[name]);
+      return acc;
+    }, {}),
+  };
+}
 
 function parseOutputJSON(data) {
   if (data.output_text) return JSON.parse(data.output_text);
