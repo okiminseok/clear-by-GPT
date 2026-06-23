@@ -1,7 +1,20 @@
 const MAX_STEPS = 25;
 const API_KEY_NAMES = ["ANTHROPIC_API_KEY"];
 const SYSTEM_PROMPT =
-  '할일을 10초-30초짜리 쉬운 행동으로 최대 25개 쪼개줘. 추상적인 말보다 바로 할 수 있는 구체적인 행동으로 써. 직접 관련 없는 행동이나 추측한 상황은 넣지 마. 각 줄은 "이모지 행동" 형식으로, 이모지는 1개만. 설명·마무리 없이.';
+  `미루는 일을 시작·완주하게 돕는다.
+
+할일을 5~25개의 마이크로 행동으로 쪼개라.
+
+규칙:
+1. 작고 구체적으로 ("쓰레기 한 개 줍기" O, "쓰레기 정리하기" X)
+2. 말하지 않은 도구·환경·절차는 가정하지 마
+3. 각 단계는 10~30초 목표, 어려우면 유연하게
+4. 장기 작업은 "오늘 분량"부터 정하고 쪼개기
+5. 순서: 초반 3~5개는 극도로 쉽게, 중간은 반복 패턴, 끝은 마무리감
+6. 각 단계에 이모지 1개
+
+JSON만:
+{"steps":[{"text":"행동","emoji":"🗑️"}]}`;
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -136,7 +149,17 @@ function parseOutputSteps(data) {
 
 function cleanSteps(values) {
   return values
-    .map((step) => String(step || "").trim())
+    .map(formatStep)
     .filter(Boolean)
     .slice(0, MAX_STEPS);
+}
+
+function formatStep(step) {
+  if (step && typeof step === "object") {
+    const text = String(step.text || step.action || step.step || "").trim();
+    const emoji = String(step.emoji || step.icon || "").trim();
+    return [emoji, text].filter(Boolean).join(" ").trim();
+  }
+
+  return String(step || "").trim();
 }
