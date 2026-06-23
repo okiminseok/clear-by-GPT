@@ -402,15 +402,18 @@ function renderHome() {
       ${
         active
           ? `
-            <button class="resume-card" data-action="resume">
-              <span class="eyebrow">최근에 하던 일</span>
-              <h2 class="resume-title">${escapeHTML(active.title)}</h2>
-              <div class="progress-track"><div class="progress-fill" style="--progress:${taskProgress(active)}%"></div></div>
-              <div class="resume-meta">
-                <span>${active.currentIndex + 1}/${active.steps.length}번째 조각</span>
-                <strong>${taskProgress(active)}%</strong>
-              </div>
-            </button>
+            <div class="resume-card">
+              <button class="resume-main" data-action="resume" aria-label="${escapeHTML(active.title)} 이어하기">
+                <span class="eyebrow">최근에 하던 일</span>
+                <h2 class="resume-title">${escapeHTML(active.title)}</h2>
+                <div class="resume-meta">
+                  <span>${active.currentIndex + 1}/${active.steps.length}번째 조각</span>
+                  <strong>${taskProgress(active)}%</strong>
+                </div>
+                <div class="progress-track"><div class="progress-fill" style="--progress:${taskProgress(active)}%"></div></div>
+              </button>
+              <button class="resume-dismiss" data-action="dismiss-active" aria-label="최근에 하던 일 지우기">×</button>
+            </div>
           `
           : ""
       }
@@ -619,6 +622,7 @@ function handleAction(element) {
   if (action === "toggle-menu") toggleMenu();
   if (action === "close-menu") closeMenu();
   if (action === "ongoing-task") openOngoingTask();
+  if (action === "dismiss-active") dismissActiveTask();
 
   if (action === "select-date") {
     state.selectedDate = element.dataset.date;
@@ -652,6 +656,16 @@ function openOngoingTask() {
   state.route = "runner";
   state.menuOpen = false;
   render();
+}
+
+function dismissActiveTask() {
+  if (!state.activeTask) return;
+  const confirmed = window.confirm("진행중인 일을 지울까요?");
+  if (!confirmed) return;
+  state.activeTask = null;
+  state.menuOpen = false;
+  persistActive();
+  setToast("최근 작업을 지웠어.");
 }
 
 function toggleTheme() {
