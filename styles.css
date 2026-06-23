@@ -147,7 +147,7 @@ button:disabled {
 }
 
 .menu-button {
-  grid-template-rows: repeat(3, 5px);
+  grid-template-rows: repeat(3, 4px);
   align-content: center;
   gap: 0;
   border-color: transparent;
@@ -160,7 +160,7 @@ button:disabled {
 .menu-line {
   display: block;
   width: 23px;
-  height: 5px;
+  height: 4px;
   border-radius: 999px;
   background: currentColor;
 }
@@ -527,8 +527,8 @@ button:disabled {
 
 .progress-track {
   overflow: hidden;
-  height: 5px;
-  border-radius: 3px;
+  height: 8px;
+  border-radius: 999px;
   background: var(--track);
 }
 
@@ -821,27 +821,9 @@ button:disabled {
   color: var(--mint);
 }
 
-.finish-progress-row {
+.finish-progress-area {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.finish-progress-row strong {
-  color: var(--ink);
-  font-family: "Syne", "Noto Sans KR", sans-serif;
-}
-
-.finish-progress {
-  width: 100%;
-}
-
-:root[data-theme="dark"] .finish-progress-row strong {
-  color: var(--mint);
+  gap: 18px;
 }
 
 .finish-copy {
