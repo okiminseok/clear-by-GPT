@@ -465,9 +465,12 @@ function renderFinish() {
   const message = state.finishMessage || finishMessages[0];
   return `
     <section class="finish-screen">
-      <div class="finish-progress-row">
-        <div class="finish-progress progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="100" style="--progress:100%"></div></div>
-        <strong>100%</strong>
+      <div class="finish-progress-area">
+        <div class="runner-meta">
+          <span>완료</span>
+          <strong>100%</strong>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="100" style="--progress:100%"></div></div>
       </div>
       <div class="finish-copy">
         <div class="finish-icon" aria-hidden="true">✨</div>
