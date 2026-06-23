@@ -10,6 +10,8 @@
   --mint-dark: #56a64a;
   --coral: #ff7a7a;
   --blue: #6877ff;
+  --sunday: #ff5f6d;
+  --saturday: #4f8dff;
   --yellow: #d8ff72;
   --shadow: 0 22px 70px rgba(38, 29, 21, 0.14);
   --button-shadow: 0 12px 30px rgba(38, 29, 21, 0.18);
@@ -32,6 +34,8 @@
   --mint-dark: #78dd72;
   --coral: #ff8ca3;
   --blue: #7ca9e8;
+  --sunday: #ff7c8b;
+  --saturday: #72a8ff;
   --yellow: #b8ff67;
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.36);
   --button-shadow: none;
@@ -143,7 +147,7 @@ button:disabled {
 }
 
 .menu-button {
-  gap: 2px;
+  gap: 1px;
   border-color: transparent;
   background: transparent;
   box-shadow: none;
@@ -485,6 +489,14 @@ button:disabled {
 .calendar {
   display: grid;
   gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.mini-calendar {
+  gap: 5px;
+  padding: 6px;
 }
 
 .calendar-header {
@@ -515,10 +527,19 @@ button:disabled {
   text-align: center;
 }
 
+.weekdays span:first-child {
+  color: var(--sunday);
+}
+
+.weekdays span:last-child {
+  color: var(--saturday);
+}
+
 .day-cell {
   position: relative;
   display: block;
   min-height: 34px;
+  border: 1px solid color-mix(in srgb, var(--line) 68%, transparent);
   border-radius: 10px;
   background: transparent;
   color: var(--ink);
@@ -527,11 +548,11 @@ button:disabled {
 }
 
 .day-cell.sunday {
-  color: color-mix(in srgb, var(--coral) 64%, var(--ink));
+  color: var(--sunday);
 }
 
 .day-cell.saturday {
-  color: color-mix(in srgb, var(--blue) 62%, var(--ink));
+  color: var(--saturday);
 }
 
 .day-cell.outside {
@@ -539,7 +560,7 @@ button:disabled {
 }
 
 .day-cell.has-count {
-  border: 1px solid color-mix(in srgb, var(--mint) 42%, transparent);
+  border-color: color-mix(in srgb, var(--mint) 48%, transparent);
 }
 
 .day-cell.selected {
@@ -549,11 +570,12 @@ button:disabled {
 
 .day-cell .day-number {
   position: absolute;
-  top: 4px;
-  left: 5px;
-  font-size: 10px;
+  top: 3px;
+  left: 4px;
+  font-size: 8px;
   line-height: 1;
   font-weight: 800;
+  opacity: 0.78;
 }
 
 .day-cell .count {
