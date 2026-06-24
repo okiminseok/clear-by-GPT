@@ -386,7 +386,7 @@ button:disabled {
   resize: none;
   border: 0;
   border-radius: 0;
-  padding: 19px 124px 12px 16px;
+  padding: 19px 108px 12px 14px;
   outline: none;
   color: var(--ink);
   background: var(--field);
@@ -403,14 +403,14 @@ button:disabled {
   right: 10px;
   top: 50%;
   display: grid;
-  width: 104px;
+  width: 96px;
   height: 46px;
   place-items: center;
-  border: 1px solid var(--title-edge);
+  border: 2px solid var(--title-edge);
   border-radius: 12px;
   background: var(--mint);
   color: #17130f;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0;
   line-height: 1;
