@@ -522,6 +522,17 @@ function speedRuleText(task) {
   return `${remaining}초 안에 클리어.`;
 }
 
+function focusNextUndoneStep(task) {
+  if (!task?.steps?.length) return;
+  const done = Array.isArray(task.done) ? task.done : [];
+  const nextIndex = task.steps.findIndex((_, index) => !done.includes(index));
+  if (nextIndex === -1) return;
+  task.currentIndex = nextIndex;
+  resetSpeedTimer(task);
+  task.updatedAt = new Date().toISOString();
+  persistActive();
+}
+
 function restartHome() {
   state.route = "home";
   state.menuOpen = false;
@@ -892,7 +903,7 @@ function handleAction(element) {
   const action = element.dataset.action;
 
   if (action === "home") restartHome();
-  if (action === "resume") setRoute("runner");
+  if (action === "resume") resumeActiveTask();
   if (action === "history") openHistory();
   if (action === "prev") moveStep(-1);
   if (action === "next") moveStep(1);
@@ -947,6 +958,12 @@ function closeMenu() {
 
 function openOngoingTask() {
   if (!state.activeTask) return;
+  resumeActiveTask();
+}
+
+function resumeActiveTask() {
+  if (!state.activeTask) return;
+  focusNextUndoneStep(state.activeTask);
   state.route = "runner";
   state.menuOpen = false;
   render();
