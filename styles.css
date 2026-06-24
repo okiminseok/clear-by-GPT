@@ -406,7 +406,7 @@ button:disabled {
   width: 104px;
   height: 46px;
   place-items: center;
-  border: 2px solid var(--title-edge);
+  border: 1px solid var(--title-edge);
   border-radius: 12px;
   background: var(--mint);
   color: #17130f;
