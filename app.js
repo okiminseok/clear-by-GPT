@@ -746,15 +746,59 @@ function renderBoardPiece(title, index, { recent = false, totalSlots = DAILY_BOA
 
 function boardPieceStyle(index, totalSlots = DAILY_BOARD_GOAL) {
   const rotations = [-1.2, 0.8, -0.4, 1.1, -0.9, 0.4, 1.3, -0.7, 0.6, -1.1];
-  const spans = boardSpanPattern(totalSlots);
-  return `--tilt:${rotations[index % rotations.length]}deg;--span:${spans[index % spans.length]}`;
+  const layout = boardLayout(totalSlots)[index % boardLayout(totalSlots).length];
+  return `--tilt:${rotations[index % rotations.length]}deg;--span:${layout.span};--start:${layout.start}`;
 }
 
-function boardSpanPattern(totalSlots) {
-  if (totalSlots >= 10) return [2, 2, 2, 3, 3, 3, 3, 2, 2, 2];
-  if (totalSlots === 9) return [2, 2, 2, 2, 2, 2, 2, 2, 2];
-  if (totalSlots === 8) return [3, 2, 1, 2, 4, 3, 2, 1];
-  return [3, 2, 1, 2, 4, 3, 3];
+function boardLayout(totalSlots) {
+  if (totalSlots >= 10) {
+    return [
+      { start: 1, span: 2 },
+      { start: 3, span: 2 },
+      { start: 5, span: 2 },
+      { start: 1, span: 3 },
+      { start: 4, span: 3 },
+      { start: 1, span: 3 },
+      { start: 4, span: 3 },
+      { start: 1, span: 2 },
+      { start: 3, span: 2 },
+      { start: 5, span: 2 },
+    ];
+  }
+  if (totalSlots === 9) {
+    return [
+      { start: 1, span: 2 },
+      { start: 3, span: 2 },
+      { start: 5, span: 2 },
+      { start: 1, span: 2 },
+      { start: 3, span: 2 },
+      { start: 5, span: 2 },
+      { start: 1, span: 2 },
+      { start: 3, span: 2 },
+      { start: 5, span: 2 },
+    ];
+  }
+  if (totalSlots === 8) {
+    return [
+      { start: 1, span: 3 },
+      { start: 4, span: 2 },
+      { start: 6, span: 1 },
+      { start: 1, span: 2 },
+      { start: 3, span: 4 },
+      { start: 1, span: 3 },
+      { start: 4, span: 2 },
+      { start: 6, span: 1 },
+    ];
+  }
+  return [
+    { start: 1, span: 3 },
+    { start: 5, span: 2 },
+    { start: 4, span: 1 },
+    { start: 1, span: 2 },
+    { start: 3, span: 4 },
+    { start: 1, span: 3 },
+    { start: 4, span: 3 },
+  ];
 }
 
 function renderRunner() {
