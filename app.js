@@ -573,6 +573,9 @@ function renderHome() {
   const counts = countByDate();
   const todayCount = counts[todayKey()] || 0;
   const active = state.activeTask;
+  const recentToday = state.completedTasks
+    .filter((task) => task.dateKey === todayKey())
+    .slice(0, 2);
 
   return `
     <section class="home">
@@ -612,13 +615,29 @@ function renderHome() {
       <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
         <div class="reward-head">
           <div class="today-summary">
-            <span>오늘 한 일</span>
-            <strong>${todayCount}</strong>
+            <span>오늘</span>
+            <strong>${todayCount}번 이겼어</strong>
           </div>
           <div class="month-summary">
             <span>${formatMonthLabel(new Date())}</span>
-            <strong>끝낸 일</strong>
+            <strong>작은 흔적</strong>
           </div>
+        </div>
+        <div class="recent-wins">
+          ${
+            recentToday.length
+              ? recentToday
+                  .map(
+                    (task) => `
+                      <div class="recent-win">
+                        <span>${escapeHTML(task.title)}</span>
+                        <strong>${formatTime(task.completedAt)}</strong>
+                      </div>
+                    `,
+                  )
+                  .join("")
+              : `<div class="recent-win empty-win">첫 번째 클리어를 기다리는 중</div>`
+          }
         </div>
         ${renderCalendar({ mini: true, selectedDate: todayKey(), month: new Date(), counts, showHeader: false })}
       </div>
