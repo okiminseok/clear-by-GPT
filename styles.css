@@ -386,49 +386,65 @@ button:disabled {
   position: relative;
   display: grid;
   padding: 0;
-  border: 2px solid var(--title-edge);
-  border-radius: 16px;
-  background: var(--panel);
-  box-shadow: 5px 5px 0 var(--title-edge);
+  border: 1px solid color-mix(in srgb, var(--title-edge) 78%, transparent);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, white 62%, transparent), transparent),
+    var(--panel);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 84%, transparent) inset,
+    0 12px 30px rgba(55, 48, 38, 0.08),
+    3px 4px 0 color-mix(in srgb, var(--title-edge) 78%, transparent);
   overflow: hidden;
 }
 
 .task-input {
-  min-height: 64px;
+  min-height: 60px;
   resize: none;
   border: 0;
   border-radius: 0;
-  padding: 19px 108px 12px 14px;
+  padding: 19px 116px 14px 18px;
   outline: none;
   color: var(--ink);
-  background: var(--field);
-  font-size: 16px;
+  background: color-mix(in srgb, var(--field) 92%, transparent);
+  font-size: 15px;
   line-height: 1.25;
+  font-weight: 650;
 }
 
 .task-input:focus {
-  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--mint) 24%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--mint) 23%, transparent);
+}
+
+.task-input::placeholder {
+  color: color-mix(in srgb, var(--muted) 76%, transparent);
+  opacity: 1;
+  font-weight: 650;
 }
 
 .submit-arrow {
   position: absolute;
-  right: 10px;
+  right: 9px;
   top: 50%;
   display: grid;
-  width: 96px;
-  height: 46px;
+  width: 104px;
+  height: 42px;
   place-items: center;
-  border: 2px solid var(--title-edge);
-  border-radius: 12px;
-  background: var(--mint);
+  border: 1px solid var(--title-edge);
+  border-radius: 13px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, white 24%, transparent), transparent),
+    var(--mint);
   color: #17130f;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0;
   line-height: 1;
   white-space: nowrap;
   transform: translateY(-50%);
-  box-shadow: none;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 72%, transparent) inset,
+    0 5px 12px color-mix(in srgb, var(--mint) 24%, transparent);
 }
 
 .primary-button,
@@ -485,18 +501,22 @@ button:disabled {
   padding: 0;
   overflow: hidden;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
-  box-shadow: 0 8px 26px rgba(55, 48, 38, 0.07);
+  border-color: color-mix(in srgb, var(--line) 72%, transparent);
+  background: color-mix(in srgb, var(--panel) 72%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 78%, transparent) inset,
+    0 8px 22px rgba(55, 48, 38, 0.045);
+  backdrop-filter: blur(12px);
 }
 
 .resume-main {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 9px;
-  min-height: 48px;
+  gap: 10px;
+  min-height: 42px;
   width: 100%;
-  padding: 0 48px 0 14px;
+  padding: 0 43px 0 12px;
   background: transparent;
   color: inherit;
   text-align: left;
@@ -505,15 +525,15 @@ button:disabled {
 .resume-dismiss {
   position: absolute;
   top: 50%;
-  right: 7px;
+  right: 6px;
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   border-radius: 999px;
   background: transparent;
   color: var(--muted);
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 500;
   line-height: 1;
   transform: translateY(-50%);
@@ -527,7 +547,7 @@ button:disabled {
 .resume-label {
   min-width: max-content;
   border-radius: 999px;
-  padding: 5px 8px;
+  padding: 5px 8px 5px;
   background: color-mix(in srgb, var(--mint) 18%, transparent);
   color: var(--mint-dark);
   font-size: 11px;
@@ -554,13 +574,13 @@ button:disabled {
 
 .resume-progress {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
 }
 
 .resume-arrow {
   color: var(--muted);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
 }
 
@@ -1403,9 +1423,30 @@ button.progress-segment {
   box-shadow: none;
 }
 
+:root[data-theme="dark"] .task-form {
+  border-color: var(--line-strong);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, white 4%, transparent), transparent),
+    var(--panel);
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .submit-arrow {
+  border-color: color-mix(in srgb, var(--mint) 52%, transparent);
+  background: color-mix(in srgb, var(--mint) 14%, var(--panel-strong));
+  color: var(--mint);
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .resume-card {
+  border-color: color-mix(in srgb, var(--line-strong) 72%, transparent);
+  background: color-mix(in srgb, var(--panel) 74%, transparent);
+}
+
 :root[data-theme="dark"] .task-input {
   border-color: rgba(255, 255, 255, 0.14);
   color: var(--ink);
+  background: color-mix(in srgb, var(--panel-strong) 72%, transparent);
 }
 
 :root[data-theme="dark"] .task-input::placeholder {
