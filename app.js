@@ -613,6 +613,7 @@ function animateProgressBars() {
 function renderTopbar({ back = false } = {}) {
   const themeLabel = state.theme === "dark" ? "라이트 모드" : "다크 모드";
   const speedOn = Boolean(state.activeTask?.speedMode);
+  const resumeTask = state.route === "home" ? state.activeTask : null;
   return `
     <div class="topbar">
       <div class="topbar-left">
@@ -623,6 +624,17 @@ function renderTopbar({ back = false } = {}) {
         </button>
         ${back ? `<button class="icon-button" data-action="home" aria-label="홈으로">←</button>` : ""}
       </div>
+      ${
+        resumeTask
+          ? `
+            <button class="topbar-resume" data-action="resume" aria-label="${escapeHTML(resumeTask.title)} 계속하기">
+              <span>진행중</span>
+              <strong>${escapeHTML(resumeTask.title)}</strong>
+              <em>${taskProgress(resumeTask)}%</em>
+            </button>
+          `
+          : ""
+      }
       <div class="topbar-actions">
         ${
           state.route === "runner"
@@ -658,7 +670,6 @@ function renderMenu() {
 function renderHome() {
   const counts = countByDate();
   const todayCount = counts[todayKey()] || 0;
-  const active = state.activeTask;
   const recentToday = state.completedTasks
     .filter((task) => task.dateKey === todayKey())
     .slice(0, DAILY_BOARD_MAX_VISIBLE);
@@ -678,22 +689,6 @@ function renderHome() {
         <textarea class="task-input" name="task" placeholder="예: 설거지, 방 정리, 컴활책 공부..."></textarea>
         <button class="submit-arrow" type="submit" aria-label="작게 쪼개기">작게 쪼개기</button>
       </form>
-
-      ${
-        active
-          ? `
-            <div class="resume-card">
-              <button class="resume-main" data-action="resume" aria-label="${escapeHTML(active.title)} 이어하기">
-                <span class="resume-label">이어하기</span>
-                <span class="resume-title">${escapeHTML(active.title)}</span>
-                <span class="resume-progress">${taskProgress(active)}%</span>
-                <span class="resume-arrow" aria-hidden="true">→</span>
-              </button>
-              <button class="resume-dismiss" data-action="dismiss-active" aria-label="최근에 하던 일 지우기">×</button>
-            </div>
-          `
-          : ""
-      }
 
       <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
         <div class="reward-head">

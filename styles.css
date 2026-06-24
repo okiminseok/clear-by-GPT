@@ -102,16 +102,62 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 9px;
   min-height: 46px;
 }
 
 .topbar-left {
   position: relative;
   z-index: 24;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.topbar-resume {
+  display: grid;
+  flex: 0 1 min(54vw, 230px);
+  min-width: 0;
+  height: 36px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--line) 74%, transparent);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: color-mix(in srgb, var(--panel) 64%, transparent);
+  color: var(--ink);
+  box-shadow: 0 8px 22px rgba(55, 48, 38, 0.055);
+  backdrop-filter: blur(16px);
+}
+
+.topbar-resume span {
+  min-width: max-content;
+  color: var(--mint-dark);
+  font-size: 11px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.topbar-resume strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-resume em {
+  min-width: max-content;
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .brand {
@@ -272,10 +318,11 @@ button:disabled {
 }
 
 .topbar-actions {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .theme-icon {
@@ -1493,6 +1540,20 @@ button.progress-segment {
 
 :root[data-theme="dark"] .resume-main {
   border-color: color-mix(in srgb, var(--line-strong) 76%, transparent);
+}
+
+:root[data-theme="dark"] .topbar-resume {
+  border-color: color-mix(in srgb, var(--line-strong) 82%, transparent);
+  background: color-mix(in srgb, var(--panel) 58%, transparent);
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .topbar-resume span {
+  color: color-mix(in srgb, var(--mint) 72%, transparent);
+}
+
+:root[data-theme="dark"] .topbar-resume strong {
+  color: color-mix(in srgb, var(--ink) 88%, transparent);
 }
 
 :root[data-theme="dark"] .task-input {
