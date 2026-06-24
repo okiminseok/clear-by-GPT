@@ -844,7 +844,6 @@ function renderRunner() {
   assignStepMentions(task);
   persistActive();
   const step = splitStepVisual(task.steps[index]);
-  const mention = stepMention(task, index);
 
   return `
     <section class="task-runner">
@@ -858,8 +857,7 @@ function renderRunner() {
       <div class="step-stage ${isDone ? "completed-step" : ""}">
         <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
         <p class="step-text">${escapeHTML(step.text)}</p>
-        ${!isDone || task.speedMode ? `<div class="clear-rule">${escapeHTML(speedRuleText(task))}</div>` : ""}
-        <div class="motivation">${escapeHTML(mention)}</div>
+        ${task.speedMode ? `<div class="clear-rule">${escapeHTML(speedRuleText(task))}</div>` : ""}
       </div>
       <div class="runner-actions">
         <button class="secondary-button" data-action="prev" ${index === 0 ? "disabled" : ""}>이전 칸</button>
@@ -885,16 +883,6 @@ function renderFinish() {
         <div class="finish-icon" aria-hidden="true">${escapeHTML(state.finishIcon || pick(finishIcons))}</div>
         <h1 class="finish-title">${escapeHTML(message[0])}</h1>
         <p class="finish-subtitle">${escapeHTML(message[1])}</p>
-        ${
-          state.lastClearedTask
-            ? `
-              <div class="finish-board-add">
-                <span>오늘 비운 것에 추가됨</span>
-                ${renderBoardPiece(state.lastClearedTask, Math.max((state.todayDoneCount || 1) - 1, 0), { recent: true })}
-              </div>
-            `
-            : ""
-        }
         ${
           state.finishSpeedResult
             ? `<div class="finish-speed">${state.finishSpeedResult.total}개 중 ${state.finishSpeedResult.wins}개 스피드 클리어</div>`
