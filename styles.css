@@ -24,15 +24,15 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --ink: #f0f0f5;
-  --muted: #8888aa;
-  --paper: #0c0c0f;
-  --panel: #13131a;
-  --panel-strong: #1a1a24;
+  --ink: #f2f1f7;
+  --muted: #7f8097;
+  --paper: #090a0d;
+  --panel: #111218;
+  --panel-strong: #181923;
   --line: #ffffff0f;
   --line-strong: #ffffff1a;
-  --mint: #b4ff6e;
-  --mint-dark: #78dd72;
+  --mint: #91f36d;
+  --mint-dark: #67cf77;
   --coral: #ff8ca3;
   --blue: #7ca9e8;
   --sunday: #ff7c8b;
@@ -69,7 +69,10 @@ body {
 }
 
 :root[data-theme="dark"] body {
-  background: var(--paper);
+  background:
+    radial-gradient(circle at 18% 4%, rgba(98, 243, 162, 0.075), transparent 26%),
+    radial-gradient(circle at 95% 16%, rgba(124, 169, 232, 0.06), transparent 24%),
+    linear-gradient(180deg, #0a0b10 0%, var(--paper) 52%, #08080b 100%);
 }
 
 button,
@@ -396,6 +399,14 @@ button:disabled {
     0 12px 30px rgba(55, 48, 38, 0.08),
     3px 4px 0 color-mix(in srgb, var(--title-edge) 78%, transparent);
   overflow: hidden;
+}
+
+.task-form:focus-within {
+  border-color: color-mix(in srgb, var(--title-edge) 88%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 84%, transparent) inset,
+    0 16px 36px rgba(55, 48, 38, 0.1),
+    3px 4px 0 color-mix(in srgb, var(--title-edge) 78%, transparent);
 }
 
 .task-input {
@@ -1227,9 +1238,22 @@ button.progress-segment {
 }
 
 :root[data-theme="dark"] .runner-meta,
-:root[data-theme="dark"] .motivation,
 :root[data-theme="dark"] .clear-rule {
   color: color-mix(in srgb, var(--mint) 72%, transparent);
+}
+
+:root[data-theme="dark"] .step-text {
+  color: #f4f3f8;
+  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.035);
+}
+
+:root[data-theme="dark"] .motivation {
+  color: #5fae72;
+}
+
+:root[data-theme="dark"] .clear-rule {
+  background: color-mix(in srgb, var(--mint) 10%, transparent);
+  color: #8adf85;
 }
 
 :root[data-theme="dark"] .task-map-node {
@@ -1429,6 +1453,11 @@ button.progress-segment {
     linear-gradient(180deg, color-mix(in srgb, white 4%, transparent), transparent),
     var(--panel);
   box-shadow: none;
+}
+
+:root[data-theme="dark"] .task-form:focus-within {
+  border-color: color-mix(in srgb, var(--mint) 42%, var(--line-strong));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 8%, transparent);
 }
 
 :root[data-theme="dark"] .submit-arrow {
