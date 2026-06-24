@@ -25,13 +25,13 @@ const finishMessages = [
 const commonMentions = [
   "이거 하나만",
   "별 거 아니야",
-  "한 칸만",
+  "이거 하나면 돼",
   "잘 하고 있어",
   "아주 좋아",
   "오. 좋은데?",
   "딱 좋아",
   "나쁘지 않은데?",
-  "오, 한 칸 넘겼다",
+  "오, 하나 넘겼다",
   "할 수 있네",
   "지금처럼만",
   "대충 해도 돼",
@@ -47,7 +47,7 @@ const earlyMentions = [
   "시작이 반이야.",
   "재채기보다 빨리 끝나.",
   "눈 깜빡할 사이에 끝나.",
-  "첫 칸만 넘기자",
+  "첫 움직임만 만들자",
   "시동만 걸면 돼",
 ];
 
@@ -59,11 +59,11 @@ const middleMentions = [
   "지금 좋아.",
   "한 번에 하나씩!",
   "조금씩 정리되고 있어.",
-  "다음 칸 열렸다.",
+  "다음 것도 가볍게.",
   "지금 리듬 좋아",
   "여기까지 온 김에 하나만 더.",
   "지금 대로면 충분해.",
-  "그냥 이 한 칸만 넘기자.",
+  "그냥 이것만 넘기자.",
 ];
 
 const finalMentions = [
@@ -73,11 +73,12 @@ const finalMentions = [
   "이제 거의 마지막.",
   "거의 다 왔어.",
   "진짜 다 왔다.",
-  "마지막 한 칸만 닫자.",
+  "마지막 하나만 닫자.",
 ];
 
 const finishIcons = ["🎉", "✨", "🌟", "🔥", "💎", "🚀", "🏆", "⚡"];
 const stepFallbackEmojis = ["✨", "✦", "💫", "🌟", "⚡", "🎯"];
+const SPEED_LIMIT_SECONDS = 45;
 
 const state = {
   route: "home",
@@ -92,6 +93,7 @@ const state = {
   theme: loadJSON(STORAGE_KEYS.theme, "light"),
   menuOpen: false,
   previousProgress: 0,
+  speedTicker: null,
 };
 
 document.documentElement.dataset.theme = state.theme;
@@ -259,6 +261,9 @@ async function createTask(rawTitle) {
       mentions: [],
       done: [],
       currentIndex: 0,
+      speedMode: false,
+      speedStartedAt: null,
+      speedWins: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -351,6 +356,10 @@ function normalizeActiveTask() {
   const task = state.activeTask;
   if (!task?.steps?.length) return;
 
+  task.speedMode = Boolean(task.speedMode);
+  task.speedWins = Array.isArray(task.speedWins) ? task.speedWins : [];
+  task.speedStartedAt = task.speedMode && task.speedStartedAt ? task.speedStartedAt : null;
+
   const normalized = [];
   const indexMap = new Map();
   task.steps.forEach((step, index) => {
@@ -407,6 +416,7 @@ function moveStep(delta) {
   if (!task) return;
   state.previousProgress = taskProgress(task);
   task.currentIndex = clamp(task.currentIndex + delta, 0, task.steps.length - 1);
+  resetSpeedTimer(task);
   task.updatedAt = new Date().toISOString();
   persistActive();
   render();
@@ -420,6 +430,7 @@ function completeCurrentStep() {
   const index = task.currentIndex;
   if (!task.done.includes(index)) {
     state.previousProgress = taskProgress(task);
+    markSpeedWin(task, index);
     task.done.push(index);
     task.done.sort((a, b) => a - b);
   }
@@ -431,6 +442,7 @@ function completeCurrentStep() {
 
   const nextIndex = task.steps.findIndex((_, stepIndex) => !task.done.includes(stepIndex));
   task.currentIndex = nextIndex === -1 ? task.currentIndex : nextIndex;
+  resetSpeedTimer(task);
   task.updatedAt = new Date().toISOString();
   persistActive();
   render();
@@ -441,6 +453,12 @@ function completeTask() {
   const task = state.activeTask;
   if (!task) return;
   state.previousProgress = taskProgress(task);
+  state.finishSpeedResult = task.speedMode
+    ? {
+        wins: Array.isArray(task.speedWins) ? task.speedWins.length : 0,
+        total: task.steps.length,
+      }
+    : null;
 
   const finishedTask = {
     id: task.id,
@@ -460,6 +478,48 @@ function completeTask() {
   persistActive();
   stopHandsfree();
   render();
+}
+
+function toggleSpeedMode() {
+  const task = state.activeTask;
+  if (!task) return;
+  task.speedMode = !task.speedMode;
+  if (task.speedMode) {
+    task.speedWins = Array.isArray(task.speedWins) ? task.speedWins : [];
+    resetSpeedTimer(task);
+    setToast("스피드 모드 ON. 시간은 넉넉하게 갈게.");
+  } else {
+    task.speedStartedAt = null;
+    setToast("스피드 모드 OFF.");
+  }
+  task.updatedAt = new Date().toISOString();
+  persistActive();
+  render();
+}
+
+function resetSpeedTimer(task) {
+  if (!task?.speedMode) return;
+  task.speedStartedAt = new Date().toISOString();
+}
+
+function speedRemaining(task) {
+  if (!task?.speedMode || !task.speedStartedAt) return SPEED_LIMIT_SECONDS;
+  const elapsed = Math.floor((Date.now() - new Date(task.speedStartedAt).getTime()) / 1000);
+  return Math.max(0, SPEED_LIMIT_SECONDS - elapsed);
+}
+
+function markSpeedWin(task, index) {
+  if (!task?.speedMode || !task.speedStartedAt) return;
+  if (speedRemaining(task) <= 0) return;
+  task.speedWins = Array.isArray(task.speedWins) ? task.speedWins : [];
+  if (!task.speedWins.includes(index)) task.speedWins.push(index);
+}
+
+function speedRuleText(task) {
+  if (!task?.speedMode) return "이것만 하면 클리어.";
+  const remaining = speedRemaining(task);
+  if (remaining <= 0) return "시간 지나도 괜찮아. 계속 가자.";
+  return `${remaining}초 안에 클리어.`;
 }
 
 function restartHome() {
@@ -499,6 +559,7 @@ function render() {
   app.innerHTML = `${view}${state.menuOpen ? renderMenu() : ""}${state.isLoading ? renderLoading() : ""}${state.toast ? renderToast() : ""}`;
   bindEvents();
   animateProgressBars();
+  manageSpeedTicker();
 }
 
 function animateProgressBars() {
@@ -517,6 +578,7 @@ function animateProgressBars() {
 
 function renderTopbar({ back = false } = {}) {
   const themeLabel = state.theme === "dark" ? "라이트 모드" : "다크 모드";
+  const speedOn = Boolean(state.activeTask?.speedMode);
   return `
     <div class="topbar">
       <div class="topbar-left">
@@ -531,6 +593,11 @@ function renderTopbar({ back = false } = {}) {
         ${
           state.route === "runner"
             ? `<button class="handsfree-button ${state.handsfree ? "active" : ""}" data-action="handsfree" aria-label="핸즈프리"><span class="mic-icon"></span></button>`
+            : ""
+        }
+        ${
+          state.route === "runner"
+            ? `<button class="speed-button ${speedOn ? "active" : ""}" data-action="speed" aria-label="스피드 모드">⚡</button>`
             : ""
         }
         <button class="theme-button" data-action="theme" aria-label="${themeLabel}">
@@ -578,13 +645,10 @@ function renderHome() {
           ? `
             <div class="resume-card">
               <button class="resume-main" data-action="resume" aria-label="${escapeHTML(active.title)} 이어하기">
-                <span class="eyebrow">최근에 하던 일</span>
-                <h2 class="resume-title">${escapeHTML(active.title)}</h2>
-                <div class="resume-meta">
-                  <span>${active.currentIndex + 1}/${active.steps.length}번째 조각</span>
-                  <strong>${taskProgress(active)}%</strong>
-                </div>
-                <div class="progress-track"><div class="progress-fill" style="--progress:${taskProgress(active)}%"></div></div>
+                <span class="resume-label">이어하기</span>
+                <span class="resume-title">${escapeHTML(active.title)}</span>
+                <span class="resume-progress">${taskProgress(active)}%</span>
+                <span class="resume-arrow" aria-hidden="true">→</span>
               </button>
               <button class="resume-dismiss" data-action="dismiss-active" aria-label="최근에 하던 일 지우기">×</button>
             </div>
@@ -631,6 +695,10 @@ function renderHome() {
 
 function renderRunner() {
   const task = state.activeTask;
+  if (task.speedMode && !task.speedStartedAt) {
+    resetSpeedTimer(task);
+    persistActive();
+  }
   const index = task.currentIndex;
   const isDone = task.done.includes(index);
   const progress = taskProgress(task);
@@ -648,9 +716,9 @@ function renderRunner() {
       </div>
       <div class="progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="${progress}" style="--progress:${progress}%"></div></div>
       <div class="step-stage">
-        <div class="step-chip">${index + 1} / ${task.steps.length} 칸</div>
         <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
         <p class="step-text">${escapeHTML(step.text)}</p>
+        <div class="clear-rule">${escapeHTML(speedRuleText(task))}</div>
         <div class="motivation">${escapeHTML(mention)}</div>
       </div>
       <div class="runner-actions">
@@ -677,6 +745,11 @@ function renderFinish() {
         <div class="finish-icon" aria-hidden="true">${escapeHTML(state.finishIcon || pick(finishIcons))}</div>
         <h1 class="finish-title">${escapeHTML(message[0])}</h1>
         <p class="finish-subtitle">${escapeHTML(message[1])}</p>
+        ${
+          state.finishSpeedResult
+            ? `<div class="finish-speed">${state.finishSpeedResult.total}개 중 ${state.finishSpeedResult.wins}개 스피드 클리어</div>`
+            : ""
+        }
       </div>
       <div class="finish-actions">
         <button class="primary-button" data-action="home">다른 할일도 하기</button>
@@ -825,6 +898,7 @@ function handleAction(element) {
   if (action === "next") moveStep(1);
   if (action === "done") completeCurrentStep();
   if (action === "handsfree") toggleHandsfree();
+  if (action === "speed") toggleSpeedMode();
   if (action === "theme") toggleTheme();
   if (action === "toggle-menu") toggleMenu();
   if (action === "close-menu") closeMenu();
@@ -846,6 +920,18 @@ function handleAction(element) {
       1,
     );
     render();
+  }
+}
+
+function manageSpeedTicker() {
+  const shouldTick = state.route === "runner" && state.activeTask?.speedMode;
+  if (shouldTick && !state.speedTicker) {
+    state.speedTicker = window.setInterval(() => render(), 1000);
+    return;
+  }
+  if (!shouldTick && state.speedTicker) {
+    window.clearInterval(state.speedTicker);
+    state.speedTicker = null;
   }
 }
 

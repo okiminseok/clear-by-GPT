@@ -135,6 +135,7 @@ button:disabled {
 .handsfree-button,
 .triangle-button,
 .theme-button,
+.speed-button,
 .menu-button {
   display: inline-grid;
   width: 44px;
@@ -183,6 +184,17 @@ button:disabled {
   border-color: transparent;
   background: var(--blue);
   color: #fff;
+}
+
+.speed-button {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.speed-button.active {
+  border-color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 20%, transparent);
+  color: var(--mint-dark);
 }
 
 .topbar-spacer {
@@ -469,16 +481,22 @@ button:disabled {
 
 .resume-card {
   position: relative;
-  display: grid;
+  display: block;
   padding: 0;
   overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  box-shadow: 0 8px 26px rgba(55, 48, 38, 0.07);
 }
 
 .resume-main {
   display: grid;
-  gap: 6px;
-  min-height: 84px;
-  padding: 13px 48px 13px 14px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  width: 100%;
+  padding: 0 48px 0 14px;
   background: transparent;
   color: inherit;
   text-align: left;
@@ -486,23 +504,35 @@ button:disabled {
 
 .resume-dismiss {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 50%;
+  right: 7px;
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: transparent;
   color: var(--muted);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 500;
   line-height: 1;
+  transform: translateY(-50%);
 }
 
 .resume-dismiss:hover {
   background: color-mix(in srgb, var(--ink) 9%, transparent);
   color: var(--ink);
+}
+
+.resume-label {
+  min-width: max-content;
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: color-mix(in srgb, var(--mint) 18%, transparent);
+  color: var(--mint-dark);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .eyebrow {
@@ -514,19 +544,24 @@ button:disabled {
 .resume-title {
   margin: 0;
   padding-right: 2px;
-  font-size: 18px;
+  font-size: 14px;
   line-height: 1.25;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 900;
 }
 
-.resume-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+.resume-progress {
   color: var(--muted);
-  font-size: 13px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.resume-arrow {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 900;
 }
 
 .progress-track {
@@ -834,6 +869,17 @@ button:disabled {
   font-weight: 900;
 }
 
+.clear-rule {
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: color-mix(in srgb, var(--mint) 15%, transparent);
+  color: var(--mint-dark);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
 .step-emoji {
   display: block;
   font-size: clamp(44px, 13vw, 76px);
@@ -858,7 +904,8 @@ button:disabled {
 }
 
 :root[data-theme="dark"] .runner-meta,
-:root[data-theme="dark"] .motivation {
+:root[data-theme="dark"] .motivation,
+:root[data-theme="dark"] .clear-rule {
   color: color-mix(in srgb, var(--mint) 72%, transparent);
 }
 
@@ -945,6 +992,16 @@ button:disabled {
   color: var(--muted);
   font-size: clamp(18px, 5vw, 28px);
   font-weight: 400;
+}
+
+.finish-speed {
+  margin-top: 8px;
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: color-mix(in srgb, var(--mint) 16%, transparent);
+  color: var(--mint-dark);
+  font-size: 13px;
+  font-weight: 900;
 }
 
 :root[data-theme="dark"] .finish-subtitle {
