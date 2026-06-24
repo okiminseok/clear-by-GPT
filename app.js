@@ -865,16 +865,15 @@ function renderRunner() {
       ${renderSegmentedProgress(task.steps.length, task.done, task.currentIndex, true)}
       <button class="map-open-button" data-action="map">전체 조각 보기</button>
       <div class="step-stage ${isDone ? "completed-step" : ""}">
-        ${isDone ? `<div class="completed-badge">클리어됨</div>` : ""}
         <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
         <p class="step-text">${escapeHTML(step.text)}</p>
-        <div class="clear-rule">${escapeHTML(speedRuleText(task))}</div>
+        ${!isDone || task.speedMode ? `<div class="clear-rule">${escapeHTML(speedRuleText(task))}</div>` : ""}
         <div class="motivation">${escapeHTML(mention)}</div>
       </div>
       <div class="runner-actions">
         <button class="secondary-button" data-action="prev" ${index === 0 ? "disabled" : ""}>이전 칸</button>
         <button class="secondary-button" data-action="next" ${index === task.steps.length - 1 ? "disabled" : ""}>다음 칸</button>
-        <button class="done-button ${isDone ? "completed" : ""}" data-action="done">${isDone ? "클리어됨" : "클리어"}</button>
+        <button class="done-button ${isDone ? "completed" : ""}" data-action="done">${isDone ? "다음 미완료" : "클리어"}</button>
       </div>
     </section>
   `;

@@ -1075,23 +1075,20 @@ button.progress-segment {
 }
 
 .step-stage.completed-step {
-  border-color: color-mix(in srgb, var(--mint) 42%, transparent);
+  border-color: color-mix(in srgb, var(--ink) 12%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--mint) 17%, transparent), color-mix(in srgb, var(--mint) 8%, transparent));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 60%, transparent);
+    linear-gradient(180deg, color-mix(in srgb, var(--ink) 8%, transparent), color-mix(in srgb, var(--ink) 4%, transparent)),
+    color-mix(in srgb, var(--mint) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 5%, transparent);
 }
 
-.completed-badge {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: var(--mint);
-  color: #17130f;
-  font-size: 12px;
-  font-weight: 950;
-  line-height: 1;
+.step-stage.completed-step .step-emoji,
+.step-stage.completed-step .step-text {
+  opacity: 0.58;
+}
+
+.step-stage.completed-step .motivation {
+  opacity: 0.72;
 }
 
 .clear-rule {
@@ -1244,6 +1241,10 @@ button.progress-segment {
 
 :root[data-theme="dark"] .step-text {
   color: #f4f3f8;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: clamp(34px, 10vw, 58px);
+  font-weight: 700;
+  letter-spacing: 0;
   text-shadow: 0 1px 18px rgba(255, 255, 255, 0.035);
 }
 
@@ -1266,18 +1267,11 @@ button.progress-segment {
 }
 
 :root[data-theme="dark"] .step-stage.completed-step {
-  border-color: color-mix(in srgb, var(--mint) 26%, transparent);
+  border-color: color-mix(in srgb, white 8%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--mint) 10%, transparent), color-mix(in srgb, var(--mint) 5%, transparent));
+    linear-gradient(180deg, color-mix(in srgb, white 5%, transparent), color-mix(in srgb, black 16%, transparent)),
+    color-mix(in srgb, var(--panel-strong) 78%, black);
   box-shadow: none;
-}
-
-:root[data-theme="dark"] .step-text {
-  color: var(--mint);
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: clamp(34px, 10vw, 58px);
-  font-weight: 700;
-  letter-spacing: 0;
 }
 
 .runner-actions {
@@ -1308,7 +1302,10 @@ button.progress-segment {
 }
 
 .done-button.completed {
-  background: var(--mint);
+  border: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+  background: color-mix(in srgb, var(--ink) 7%, var(--panel));
+  color: color-mix(in srgb, var(--ink) 76%, transparent);
+  box-shadow: none;
 }
 
 .finish-screen {
@@ -1400,6 +1397,12 @@ button.progress-segment {
   border: 1px solid var(--mint);
   background: color-mix(in srgb, var(--mint) 8%, transparent);
   color: var(--mint);
+}
+
+:root[data-theme="dark"] .done-button.completed {
+  border-color: color-mix(in srgb, white 10%, transparent);
+  background: color-mix(in srgb, white 5%, transparent);
+  color: color-mix(in srgb, var(--ink) 54%, transparent);
 }
 
 :root[data-theme="dark"] .today-board {
