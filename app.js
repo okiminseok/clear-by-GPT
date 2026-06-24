@@ -726,7 +726,7 @@ function renderTodayBoard(tasks, todayCount) {
     return `<span class="board-piece empty" style="${boardPieceStyle(slot, DAILY_BOARD_GOAL)}" aria-hidden="true"></span>`;
   }).join("");
   const extraPieces = extraTasks
-    .map((task, index) => renderBoardPiece(task.title, index + DAILY_BOARD_GOAL, { recent: index === 0 && boardTasks.length >= DAILY_BOARD_GOAL, totalSlots: DAILY_BOARD_MAX_VISIBLE }))
+    .map((task, index) => renderBoardPiece(task.title, index, { recent: index === 0 && boardTasks.length >= DAILY_BOARD_GOAL, totalSlots: Math.max(extraTasks.length, 3) }))
     .join("");
 
   return `
@@ -758,10 +758,18 @@ function renderBoardPiece(title, index, { recent = false, totalSlots = DAILY_BOA
 function boardPieceStyle(index, totalSlots = DAILY_BOARD_GOAL) {
   const rotations = [-1.2, 0.8, -0.4, 1.1, -0.9, 0.4, 1.3, -0.7, 0.6, -1.1];
   const layout = boardLayout(totalSlots)[index % boardLayout(totalSlots).length];
-  return `--tilt:${rotations[index % rotations.length]}deg;--span:${layout.span};--start:${layout.start}`;
+  const row = layout.row ? `;--row:${layout.row}` : "";
+  return `--tilt:${rotations[index % rotations.length]}deg;--span:${layout.span};--start:${layout.start}${row}`;
 }
 
 function boardLayout(totalSlots) {
+  if (totalSlots <= 3) {
+    return [
+      { start: 1, span: 2 },
+      { start: 3, span: 2 },
+      { start: 5, span: 2 },
+    ];
+  }
   if (totalSlots >= 10) {
     return [
       { start: 1, span: 2 },
@@ -802,13 +810,13 @@ function boardLayout(totalSlots) {
     ];
   }
   return [
-    { start: 1, span: 3 },
-    { start: 5, span: 2 },
-    { start: 4, span: 1 },
-    { start: 1, span: 2 },
-    { start: 3, span: 4 },
-    { start: 1, span: 3 },
-    { start: 4, span: 3 },
+    { row: 1, start: 1, span: 3 },
+    { row: 1, start: 4, span: 2 },
+    { row: 2, start: 1, span: 2 },
+    { row: 2, start: 3, span: 4 },
+    { row: 3, start: 1, span: 3 },
+    { row: 3, start: 4, span: 3 },
+    { row: 1, start: 6, span: 1 },
   ];
 }
 
