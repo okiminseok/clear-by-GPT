@@ -508,35 +508,37 @@ button:disabled {
 
 .resume-card {
   position: relative;
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  align-items: stretch;
+  gap: 8px;
   padding: 0;
-  overflow: hidden;
-  border-radius: 999px;
-  border-color: color-mix(in srgb, var(--line) 72%, transparent);
-  background: color-mix(in srgb, var(--panel) 72%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, white 78%, transparent) inset,
-    0 8px 22px rgba(55, 48, 38, 0.045);
-  backdrop-filter: blur(12px);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .resume-main {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 10px;
-  min-height: 42px;
+  gap: 9px;
+  min-height: 39px;
   width: 100%;
-  padding: 0 43px 0 12px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+  padding: 0 0 0 1px;
   background: transparent;
   color: inherit;
   text-align: left;
 }
 
 .resume-dismiss {
-  position: absolute;
-  top: 50%;
-  right: 6px;
+  position: static;
+  align-self: center;
   display: grid;
   width: 30px;
   height: 30px;
@@ -547,7 +549,7 @@ button:disabled {
   font-size: 19px;
   font-weight: 500;
   line-height: 1;
-  transform: translateY(-50%);
+  transform: none;
 }
 
 .resume-dismiss:hover {
@@ -557,12 +559,12 @@ button:disabled {
 
 .resume-label {
   min-width: max-content;
-  border-radius: 999px;
-  padding: 5px 8px 5px;
-  background: color-mix(in srgb, var(--mint) 18%, transparent);
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
   color: var(--mint-dark);
-  font-size: 11px;
-  font-weight: 900;
+  font-size: 12px;
+  font-weight: 950;
   line-height: 1;
 }
 
@@ -576,7 +578,7 @@ button:disabled {
   margin: 0;
   padding-right: 2px;
   font-size: 14px;
-  line-height: 1.25;
+  line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -587,12 +589,14 @@ button:disabled {
   color: var(--muted);
   font-size: 11px;
   font-weight: 900;
+  line-height: 1;
 }
 
 .resume-arrow {
   color: var(--muted);
   font-size: 15px;
   font-weight: 900;
+  line-height: 1;
 }
 
 .progress-track {
@@ -1440,7 +1444,6 @@ button.progress-segment {
 }
 
 :root[data-theme="dark"] .task-form,
-:root[data-theme="dark"] .resume-card,
 :root[data-theme="dark"] .reward-card,
 :root[data-theme="dark"] .stat-strip,
 :root[data-theme="dark"] .history-list,
@@ -1471,8 +1474,13 @@ button.progress-segment {
 }
 
 :root[data-theme="dark"] .resume-card {
-  border-color: color-mix(in srgb, var(--line-strong) 72%, transparent);
-  background: color-mix(in srgb, var(--panel) 74%, transparent);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .resume-main {
+  border-color: color-mix(in srgb, var(--line-strong) 76%, transparent);
 }
 
 :root[data-theme="dark"] .task-input {
