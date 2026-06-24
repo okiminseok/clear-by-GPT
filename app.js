@@ -423,6 +423,18 @@ function moveStep(delta) {
   if (state.handsfree) startRecognition();
 }
 
+function jumpToStep(index) {
+  const task = state.activeTask;
+  if (!task) return;
+  const nextIndex = clamp(Number(index), 0, task.steps.length - 1);
+  state.previousProgress = taskProgress(task);
+  task.currentIndex = nextIndex;
+  resetSpeedTimer(task);
+  task.updatedAt = new Date().toISOString();
+  persistActive();
+  render();
+}
+
 function completeCurrentStep() {
   const task = state.activeTask;
   if (!task) return;
@@ -516,6 +528,8 @@ function markSpeedWin(task, index) {
 }
 
 function speedRuleText(task) {
+  const currentIndex = task?.currentIndex ?? 0;
+  if (task?.done?.includes(currentIndex)) return "이미 클리어한 조각.";
   if (!task?.speedMode) return "이것만 하면 클리어.";
   const remaining = speedRemaining(task);
   if (remaining <= 0) return "시간 지나도 괜찮아. 계속 가자.";
@@ -726,7 +740,9 @@ function renderRunner() {
         <strong>${progress}%</strong>
       </div>
       <div class="progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="${progress}" style="--progress:${progress}%"></div></div>
-      <div class="step-stage">
+      ${renderStepMap(task)}
+      <div class="step-stage ${isDone ? "completed-step" : ""}">
+        ${isDone ? `<div class="completed-badge">클리어됨</div>` : ""}
         <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
         <p class="step-text">${escapeHTML(step.text)}</p>
         <div class="clear-rule">${escapeHTML(speedRuleText(task))}</div>
@@ -738,6 +754,28 @@ function renderRunner() {
         <button class="done-button ${isDone ? "completed" : ""}" data-action="done">${isDone ? "클리어됨" : "클리어"}</button>
       </div>
     </section>
+  `;
+}
+
+function renderStepMap(task) {
+  return `
+    <div class="step-map" aria-label="조각 진행 상태">
+      ${task.steps
+        .map((_, index) => {
+          const isCurrent = index === task.currentIndex;
+          const isDone = task.done.includes(index);
+          const label = isDone ? "클리어됨" : isCurrent ? "현재 조각" : "남은 조각";
+          return `
+            <button
+              class="step-dot ${isDone ? "done" : ""} ${isCurrent ? "current" : ""}"
+              data-action="select-step"
+              data-index="${index}"
+              aria-label="${index + 1}번째 조각, ${label}"
+            ></button>
+          `;
+        })
+        .join("")}
+    </div>
   `;
 }
 
@@ -897,6 +935,32 @@ function bindEvents() {
       }
     });
   });
+
+  const swipeZone = app.querySelector(".step-stage");
+  if (swipeZone) {
+    let startX = 0;
+    let startY = 0;
+    swipeZone.addEventListener(
+      "touchstart",
+      (event) => {
+        const touch = event.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+      },
+      { passive: true },
+    );
+    swipeZone.addEventListener(
+      "touchend",
+      (event) => {
+        const touch = event.changedTouches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        if (Math.abs(deltaX) < 54 || Math.abs(deltaX) < Math.abs(deltaY) * 1.4) return;
+        moveStep(deltaX < 0 ? 1 : -1);
+      },
+      { passive: true },
+    );
+  }
 }
 
 function handleAction(element) {
@@ -907,6 +971,7 @@ function handleAction(element) {
   if (action === "history") openHistory();
   if (action === "prev") moveStep(-1);
   if (action === "next") moveStep(1);
+  if (action === "select-step") jumpToStep(element.dataset.index);
   if (action === "done") completeCurrentStep();
   if (action === "handsfree") toggleHandsfree();
   if (action === "speed") toggleSpeedMode();

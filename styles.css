@@ -580,6 +580,43 @@ button:disabled {
   will-change: width;
 }
 
+.step-map {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  padding: 2px 8px 0;
+}
+
+.step-dot {
+  width: 13px;
+  height: 13px;
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  box-shadow: none;
+  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
+}
+
+.step-dot.done {
+  border-color: var(--mint);
+  background: var(--mint);
+}
+
+.step-dot.current {
+  border-color: var(--ink);
+  background: var(--panel-strong);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 22%, transparent);
+  transform: scale(1.08);
+}
+
+.step-dot.done.current {
+  background: var(--mint);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--mint) 26%, transparent),
+    inset 0 0 0 3px color-mix(in srgb, var(--ink) 13%, transparent);
+}
+
 .stat-strip {
   display: grid;
   grid-template-columns: minmax(72px, 0.32fr) minmax(0, 1.68fr);
@@ -832,7 +869,7 @@ button:disabled {
 .task-runner {
   display: grid;
   min-height: calc(100svh - 36px);
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto auto 1fr auto;
   gap: 18px;
 }
 
@@ -847,26 +884,37 @@ button:disabled {
 }
 
 .step-stage {
+  position: relative;
   display: grid;
   align-content: center;
   justify-items: center;
   gap: 12px;
   min-height: 48svh;
-  padding: 20px 4px;
+  padding: 28px 14px;
+  border: 1px solid transparent;
+  border-radius: 28px;
   text-align: center;
   animation: stepIn 240ms ease-out both;
 }
 
-.step-chip {
-  display: inline-grid;
-  min-height: 28px;
-  place-items: center;
+.step-stage.completed-step {
+  border-color: color-mix(in srgb, var(--mint) 42%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--mint) 17%, transparent), color-mix(in srgb, var(--mint) 8%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 60%, transparent);
+}
+
+.completed-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
   border-radius: 999px;
-  padding: 0 12px;
-  background: color-mix(in srgb, var(--mint) 16%, transparent);
-  color: var(--mint-dark);
+  padding: 6px 10px;
+  background: var(--mint);
+  color: #17130f;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 950;
+  line-height: 1;
 }
 
 .clear-rule {
@@ -907,6 +955,23 @@ button:disabled {
 :root[data-theme="dark"] .motivation,
 :root[data-theme="dark"] .clear-rule {
   color: color-mix(in srgb, var(--mint) 72%, transparent);
+}
+
+:root[data-theme="dark"] .step-dot {
+  border-color: var(--line-strong);
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+:root[data-theme="dark"] .step-dot.current {
+  border-color: var(--mint);
+  background: var(--panel-strong);
+}
+
+:root[data-theme="dark"] .step-stage.completed-step {
+  border-color: color-mix(in srgb, var(--mint) 26%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--mint) 10%, transparent), color-mix(in srgb, var(--mint) 5%, transparent));
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .step-text {
