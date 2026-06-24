@@ -190,6 +190,9 @@ function cleanSteps(values) {
 }
 
 function formatStep(step, lastFallback = "") {
+  const parsedStringStep = parseStepObjectString(step);
+  if (parsedStringStep) return formatStep(parsedStringStep, lastFallback);
+
   if (step && typeof step === "object") {
     const text = String(step.text || step.action || step.step || "").trim();
     const picked = normalizeEmoji(step.emoji || step.icon, lastFallback);
@@ -217,6 +220,19 @@ function formatStep(step, lastFallback = "") {
     emoji: picked.emoji,
     fallbackUsed: picked.fallbackUsed,
   };
+}
+
+function parseStepObjectString(step) {
+  if (typeof step !== "string") return null;
+  const value = step.trim().replace(/,+$/, "");
+  if (!value.startsWith("{") || !value.endsWith("}")) return null;
+
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function normalizeEmoji(value, lastFallback = "") {

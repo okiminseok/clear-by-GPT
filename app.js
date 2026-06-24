@@ -230,12 +230,30 @@ function sanitizeSteps(steps, fallbackTitle) {
 
 function splitStepVisual(step) {
   const value = String(step || "").trim();
+  const parsed = parseStepVisualObject(value);
+  if (parsed) return parsed;
   const match = value.match(/^(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)\s*(.+)$/u);
   if (!match) return { icon: fallbackStepEmoji(value), text: value };
   return {
     icon: match[1],
     text: match[2].trim() || value,
   };
+}
+
+function parseStepVisualObject(value) {
+  const source = String(value || "").trim().replace(/,+$/, "");
+  if (!source.startsWith("{") || !source.endsWith("}")) return null;
+
+  try {
+    const parsed = JSON.parse(source);
+    if (!parsed || typeof parsed !== "object") return null;
+    const text = String(parsed.text || parsed.action || parsed.step || "").trim();
+    if (!text) return null;
+    const icon = String(parsed.emoji || parsed.icon || "").trim() || fallbackStepEmoji(text);
+    return { icon, text };
+  } catch {
+    return null;
+  }
 }
 
 function fallbackStepEmoji(value) {
