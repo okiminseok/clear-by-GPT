@@ -104,7 +104,6 @@ const state = {
   toast: "",
   handsfree: false,
   recognition: null,
-  lastMotivation: "",
   theme: loadJSON(STORAGE_KEYS.theme, "light"),
   menuOpen: false,
   previousProgress: 0,
@@ -157,10 +156,10 @@ function pick(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-function mentionPoolForStep(task) {
+function mentionPoolForStep(task, stepIndex = task?.currentIndex || 0) {
   if (!task?.steps?.length) return commonMentions;
 
-  const index = task.currentIndex || 0;
+  const index = stepIndex;
   const total = task.steps.length;
   let stageMentions = middleMentions;
 
@@ -180,8 +179,31 @@ function pickStepMention(task) {
   return pick(pool.length ? pool : commonMentions);
 }
 
-function refreshStepMention(task) {
-  state.lastMotivation = pickStepMention(task);
+function pickUniqueMention(task, stepIndex, usedMentions) {
+  const pool = mentionPoolForStep(task, stepIndex);
+  const unused = pool.filter((mention) => !usedMentions.has(mention));
+  const mention = pick(unused.length ? unused : pool);
+  usedMentions.add(mention);
+  return mention;
+}
+
+function assignStepMentions(task) {
+  if (!task?.steps?.length) return [];
+
+  const existing = Array.isArray(task.mentions) ? task.mentions : [];
+  const usedMentions = new Set(existing.filter(Boolean));
+  const mentions = task.steps.map((_, index) => {
+    if (existing[index]) return existing[index];
+    return pickUniqueMention(task, index, usedMentions);
+  });
+
+  task.mentions = mentions;
+  return mentions;
+}
+
+function stepMention(task, index = task?.currentIndex || 0) {
+  const mentions = assignStepMentions(task);
+  return mentions[index] || pickStepMention(task);
 }
 
 function pickFinishMessage(todayCount) {
@@ -248,13 +270,14 @@ async function createTask(rawTitle) {
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       title,
       steps,
+      mentions: [],
       done: [],
       currentIndex: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+    assignStepMentions(state.activeTask);
     state.route = "runner";
-    refreshStepMention(state.activeTask);
     state.previousProgress = 0;
     persistActive();
     if (state.handsfree) startRecognition();
@@ -343,7 +366,6 @@ function moveStep(delta) {
   if (!task) return;
   state.previousProgress = taskProgress(task);
   task.currentIndex = clamp(task.currentIndex + delta, 0, task.steps.length - 1);
-  refreshStepMention(task);
   task.updatedAt = new Date().toISOString();
   persistActive();
   render();
@@ -368,7 +390,6 @@ function completeCurrentStep() {
 
   const nextIndex = task.steps.findIndex((_, stepIndex) => !task.done.includes(stepIndex));
   task.currentIndex = nextIndex === -1 ? task.currentIndex : nextIndex;
-  refreshStepMention(task);
   task.updatedAt = new Date().toISOString();
   persistActive();
   render();
@@ -548,7 +569,10 @@ function renderRunner() {
   const index = task.currentIndex;
   const isDone = task.done.includes(index);
   const progress = taskProgress(task);
+  assignStepMentions(task);
+  persistActive();
   const step = splitStepVisual(task.steps[index]);
+  const mention = stepMention(task, index);
 
   return `
     <section class="task-runner">
@@ -561,7 +585,7 @@ function renderRunner() {
       <div class="step-stage">
         <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
         <p class="step-text">${escapeHTML(step.text)}</p>
-        <div class="motivation">${escapeHTML(state.lastMotivation || pickStepMention(task))}</div>
+        <div class="motivation">${escapeHTML(mention)}</div>
       </div>
       <div class="runner-actions">
         <button class="secondary-button" data-action="prev" ${index === 0 ? "disabled" : ""}>이전</button>
