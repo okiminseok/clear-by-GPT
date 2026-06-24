@@ -693,7 +693,7 @@ function renderHome() {
       <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
         <div class="reward-head">
           <div class="today-summary">
-            <span>오늘 채운 것</span>
+            <span>오늘 비운 것</span>
             <strong>${todayCount}개</strong>
           </div>
           <div class="month-summary">
@@ -708,10 +708,10 @@ function renderHome() {
 }
 
 function todayBoardLabel(count) {
-  if (count >= DAILY_BOARD_MAX_VISIBLE) return "보너스까지 채움";
-  if (count >= DAILY_BOARD_GOAL) return "오늘 판 완성";
-  if (count <= 0) return "첫 조각 기다리는 중";
-  return `${DAILY_BOARD_GOAL - count}개 더 채우기`;
+  if (count >= DAILY_BOARD_MAX_VISIBLE) return "오늘 꽤 많이 비웠어";
+  if (count >= DAILY_BOARD_GOAL) return "오늘 충분히 비웠어";
+  if (count <= 0) return "아직 비어 있어";
+  return `${DAILY_BOARD_GOAL - count}개만 더 비우기`;
 }
 
 function renderTodayBoard(tasks, todayCount) {
@@ -727,7 +727,7 @@ function renderTodayBoard(tasks, todayCount) {
 
   return `
     <div class="today-board ${todayCount >= DAILY_BOARD_GOAL ? "complete" : ""} ${todayCount >= DAILY_BOARD_MAX_VISIBLE ? "bonus-complete" : ""}">
-      ${pieces || `<div class="board-empty-copy">아직 비어 있어. 하나만 채워보자.</div>`}
+      ${pieces || `<div class="board-empty-copy">하나만 비워보자.</div>`}
       ${emptyPieces}
     </div>
   `;
@@ -742,7 +742,7 @@ function renderBoardPiece(title, index, { recent = false } = {}) {
 }
 
 function boardPieceStyle(index) {
-  const rotations = [-1.2, 0.8, -0.4, 1.1, -0.9, 0.4, 1.3, -0.7, 0.6, -1.1];
+  const rotations = [-0.45, 0.35, -0.2, 0.45, -0.35, 0.18, 0.5, -0.28, 0.22, -0.4];
   const spans = [2, 2, 3, 2, 3, 2, 2, 3, 2, 3];
   return `--tilt:${rotations[index % rotations.length]}deg;--span:${spans[index % spans.length]}`;
 }
@@ -827,7 +827,7 @@ function renderFinish() {
           state.lastClearedTask
             ? `
               <div class="finish-board-add">
-                <span>오늘 판에 추가됨</span>
+                <span>오늘 비운 것에 추가됨</span>
                 ${renderBoardPiece(state.lastClearedTask.title, Math.max((state.todayDoneCount || 1) - 1, 0), { recent: true })}
               </div>
             `
