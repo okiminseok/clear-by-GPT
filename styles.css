@@ -903,17 +903,6 @@ button.progress-segment {
   display: none;
 }
 
-.board-empty-copy {
-  display: grid;
-  grid-column: 1 / -1;
-  min-height: 42px;
-  place-items: center;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 850;
-  text-align: center;
-}
-
 .recent-wins {
   display: grid;
   gap: 6px;

@@ -690,24 +690,29 @@ function renderHome() {
         <button class="submit-arrow" type="submit" aria-label="작게 쪼개기">작게 쪼개기</button>
       </form>
 
-      <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
-        <div class="reward-head">
-          <div class="today-summary">
-            <span>오늘 비운 것</span>
-            <strong>${todayCount}개</strong>
+      ${
+        todayCount > 0
+          ? `
+          <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
+            <div class="reward-head">
+              <div class="today-summary">
+                <span>오늘 비운 것</span>
+                <strong>${todayCount}개</strong>
+              </div>
+              <div class="month-summary">
+                <span>${todayBoardLabel()}</span>
+              </div>
+            </div>
+            ${renderTodayBoard(recentToday, todayCount)}
           </div>
-          <div class="month-summary">
-            <span>${todayBoardLabel(todayCount)}</span>
-          </div>
-        </div>
-        ${renderTodayBoard(recentToday, todayCount)}
-      </div>
+        `
+          : ""
+      }
     </section>
   `;
 }
 
-function todayBoardLabel(count) {
-  if (count <= 0) return "기록 보기";
+function todayBoardLabel() {
   return "기록 보기";
 }
 
@@ -728,7 +733,7 @@ function renderTodayBoard(tasks, todayCount) {
 
   return `
     <div class="today-board slots-${DAILY_BOARD_GOAL} ${todayCount >= DAILY_BOARD_GOAL ? "complete" : ""}">
-      ${pieces || `<div class="board-empty-copy">하나만 비워보자.</div>`}
+      ${pieces}
       ${emptyPieces}
     </div>
     ${
