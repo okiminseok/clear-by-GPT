@@ -559,8 +559,8 @@ button:disabled {
 
 .reward-card {
   display: grid;
-  gap: 11px;
-  padding: 13px;
+  gap: 12px;
+  padding: 15px;
   width: 100%;
   color: inherit;
   text-align: left;
@@ -596,15 +596,15 @@ button:disabled {
 }
 
 .month-summary {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
 }
 
 .month-summary span {
-  color: var(--ink);
-  font-family: "Noto Sans KR", system-ui, sans-serif;
-  font-size: 16px;
+  color: inherit;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: 0;
 }
@@ -616,16 +616,16 @@ button:disabled {
 
 .recent-win {
   display: flex;
-  min-height: 32px;
+  min-height: 36px;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   border-radius: 8px;
-  padding: 0 10px;
+  padding: 0 11px;
   background: color-mix(in srgb, var(--mint) 11%, transparent);
   color: var(--ink);
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 850;
 }
 
 .recent-win span {
@@ -645,6 +645,7 @@ button:disabled {
   justify-content: center;
   color: var(--muted);
   background: color-mix(in srgb, var(--ink) 4%, transparent);
+  font-size: 13px;
 }
 
 .today-count strong {
@@ -818,6 +819,19 @@ button:disabled {
   min-height: 48svh;
   padding: 20px 4px;
   text-align: center;
+  animation: stepIn 240ms ease-out both;
+}
+
+.step-chip {
+  display: inline-grid;
+  min-height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: color-mix(in srgb, var(--mint) 16%, transparent);
+  color: var(--mint-dark);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .step-emoji {
@@ -875,6 +889,12 @@ button:disabled {
   font-size: 19px;
   font-weight: 900;
   box-shadow: var(--button-shadow);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.done-button:active {
+  transform: scale(0.985);
+  filter: brightness(0.98);
 }
 
 .done-button.completed {
@@ -1120,6 +1140,18 @@ button:disabled {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

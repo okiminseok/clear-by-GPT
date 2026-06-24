@@ -10,13 +10,13 @@ const MAX_STEPS = 25;
 const app = document.querySelector("#app");
 
 const finishMessages = [
-  ["현실이 조금 바뀌었어.", "{{task}}, 실제로 움직였다는 증거야."],
-  ["됐다.", "점수가 아니라 네 현실에 남은 변화야."],
+  ["클리어.", "{{task}}, 하나 끝냈어."],
+  ["됐다.", "방금 전까지 미루던 게 하나 사라졌어."],
   ["정리됐다.", "머릿속도 같이 한 칸 가벼워졌을 거야."],
-  ["끝.", "방금 전까지 미루던 게 하나 사라졌어."],
+  ["끝.", "이건 네가 실제로 바꾼 장면이야."],
   ["한 칸 비웠어.", "작지만 분명히 현실이 달라졌어."],
   ["오, 진짜 했다.", "하기 전보다 지금이 조금 더 낫다."],
-  ["움직였다.", "생각보다 몸이 먼저 답을 알고 있었지."],
+  ["하나 클리어.", "생각보다 몸이 먼저 답을 알고 있었지."],
   ["잘 해냈어.", "이건 기록이 아니라 네가 만든 변화야."],
   ["또 하나 줄었다.", "미루던 무게가 아주 조금 가벼워졌어.", { minTodayCount: 2 }],
   ["흐름이 생겼어.", "이런 작은 움직임이 하루를 바꿔.", { minTodayCount: 2 }],
@@ -25,13 +25,13 @@ const finishMessages = [
 const commonMentions = [
   "이거 하나만",
   "별 거 아니야",
-  "현실 한 칸만",
+  "한 칸만",
   "잘 하고 있어",
   "아주 좋아",
   "오. 좋은데?",
   "딱 좋아",
   "나쁘지 않은데?",
-  "오, 움직였다",
+  "오, 한 칸 넘겼다",
   "할 수 있네",
   "지금처럼만",
   "대충 해도 돼",
@@ -59,7 +59,7 @@ const middleMentions = [
   "지금 좋아.",
   "한 번에 하나씩!",
   "조금씩 정리되고 있어.",
-  "현실이 조금씩 바뀌고 있어.",
+  "다음 칸 열렸다.",
   "지금 리듬 좋아",
   "여기까지 온 김에 하나만 더.",
   "지금 대로면 충분해.",
@@ -601,11 +601,11 @@ function renderHome() {
         <div class="reward-head">
           <div class="today-summary">
             <span>오늘</span>
-            <strong>${todayCount}번 움직였어</strong>
+            <strong>${todayCount}개 클리어</strong>
           </div>
           <div class="month-summary">
-            <span>${formatMonthLabel(new Date())}</span>
-            <strong>바뀐 흔적</strong>
+            <span>기록 보기</span>
+            <strong>→</strong>
           </div>
         </div>
         <div class="recent-wins">
@@ -621,10 +621,9 @@ function renderHome() {
                     `,
                   )
                   .join("")
-              : `<div class="recent-win empty-win">첫 번째 변화가 기다리는 중</div>`
+              : `<div class="recent-win empty-win">아직 비어 있어. 하나만 클리어해보자.</div>`
           }
         </div>
-        ${renderCalendar({ mini: true, selectedDate: todayKey(), month: new Date(), counts, showHeader: false })}
       </div>
     </section>
   `;
@@ -649,14 +648,15 @@ function renderRunner() {
       </div>
       <div class="progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="${progress}" style="--progress:${progress}%"></div></div>
       <div class="step-stage">
+        <div class="step-chip">${index + 1} / ${task.steps.length} 칸</div>
         <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
         <p class="step-text">${escapeHTML(step.text)}</p>
         <div class="motivation">${escapeHTML(mention)}</div>
       </div>
       <div class="runner-actions">
-        <button class="secondary-button" data-action="prev" ${index === 0 ? "disabled" : ""}>이전</button>
-        <button class="secondary-button" data-action="next" ${index === task.steps.length - 1 ? "disabled" : ""}>다음</button>
-        <button class="done-button ${isDone ? "completed" : ""}" data-action="done">${isDone ? "완료됨" : "했어"}</button>
+        <button class="secondary-button" data-action="prev" ${index === 0 ? "disabled" : ""}>이전 칸</button>
+        <button class="secondary-button" data-action="next" ${index === task.steps.length - 1 ? "disabled" : ""}>다음 칸</button>
+        <button class="done-button ${isDone ? "completed" : ""}" data-action="done">${isDone ? "클리어됨" : "클리어"}</button>
       </div>
     </section>
   `;
