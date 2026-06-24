@@ -715,36 +715,46 @@ function todayBoardLabel(count) {
 }
 
 function renderTodayBoard(tasks, todayCount) {
+  const visibleCount = tasks.length;
+  const boardSlots = visibleCount < DAILY_BOARD_GOAL
+    ? DAILY_BOARD_GOAL
+    : clamp(visibleCount, DAILY_BOARD_GOAL, DAILY_BOARD_MAX_VISIBLE);
   const pieces = tasks
-    .map((task, index) => renderBoardPiece(task.title, index, { recent: index === 0 }))
+    .map((task, index) => renderBoardPiece(task.title, index, { recent: index === 0, totalSlots: boardSlots }))
     .join("");
-  const emptyTarget = todayCount >= DAILY_BOARD_GOAL ? DAILY_BOARD_MAX_VISIBLE : DAILY_BOARD_GOAL;
-  const emptyCount = Math.max(0, Math.min(emptyTarget - tasks.length, emptyTarget));
+  const emptyCount = Math.max(0, boardSlots - tasks.length);
   const emptyPieces = Array.from({ length: emptyCount }, (_, index) => {
     const slot = index + tasks.length;
-    return `<span class="board-piece empty" style="${boardPieceStyle(slot)}" aria-hidden="true"></span>`;
+    return `<span class="board-piece empty" style="${boardPieceStyle(slot, boardSlots)}" aria-hidden="true"></span>`;
   }).join("");
 
   return `
-    <div class="today-board ${todayCount >= DAILY_BOARD_GOAL ? "complete" : ""} ${todayCount >= DAILY_BOARD_MAX_VISIBLE ? "bonus-complete" : ""}">
+    <div class="today-board slots-${boardSlots} ${todayCount >= DAILY_BOARD_GOAL ? "complete" : ""} ${todayCount >= DAILY_BOARD_MAX_VISIBLE ? "bonus-complete" : ""}">
       ${pieces || `<div class="board-empty-copy">하나만 비워보자.</div>`}
       ${emptyPieces}
     </div>
   `;
 }
 
-function renderBoardPiece(title, index, { recent = false } = {}) {
+function renderBoardPiece(title, index, { recent = false, totalSlots = DAILY_BOARD_GOAL } = {}) {
   return `
-    <span class="board-piece piece-${index % 6} ${recent ? "recent" : ""}" style="${boardPieceStyle(index)}">
+    <span class="board-piece piece-${index % 6} ${recent ? "recent" : ""}" style="${boardPieceStyle(index, totalSlots)}">
       ${escapeHTML(title)}
     </span>
   `;
 }
 
-function boardPieceStyle(index) {
+function boardPieceStyle(index, totalSlots = DAILY_BOARD_GOAL) {
   const rotations = [-0.45, 0.35, -0.2, 0.45, -0.35, 0.18, 0.5, -0.28, 0.22, -0.4];
-  const spans = [2, 2, 3, 2, 3, 2, 2, 3, 2, 3];
+  const spans = boardSpanPattern(totalSlots);
   return `--tilt:${rotations[index % rotations.length]}deg;--span:${spans[index % spans.length]}`;
+}
+
+function boardSpanPattern(totalSlots) {
+  if (totalSlots >= 10) return [2, 2, 2, 3, 3, 3, 3, 2, 2, 2];
+  if (totalSlots === 9) return [2, 2, 2, 2, 2, 2, 2, 2, 2];
+  if (totalSlots === 8) return [3, 3, 2, 2, 2, 2, 2, 2];
+  return [3, 3, 2, 2, 2, 3, 3];
 }
 
 function renderRunner() {
