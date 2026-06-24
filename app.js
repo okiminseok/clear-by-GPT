@@ -703,7 +703,6 @@ function renderHome() {
           </div>
           <div class="month-summary">
             <span>${todayBoardLabel(todayCount)}</span>
-            <strong>→</strong>
           </div>
         </div>
         ${renderTodayBoard(recentToday, todayCount)}
@@ -713,10 +712,8 @@ function renderHome() {
 }
 
 function todayBoardLabel(count) {
-  if (count >= DAILY_BOARD_MAX_VISIBLE) return "오늘 꽤 많이 비웠어";
-  if (count >= DAILY_BOARD_GOAL) return "오늘 충분히 비웠어";
-  if (count <= 0) return "아직 비어 있어";
-  return `${DAILY_BOARD_GOAL - count}개만 더 비우기`;
+  if (count <= 0) return "기록 보기";
+  return "기록 보기";
 }
 
 function renderTodayBoard(tasks, todayCount) {
@@ -772,8 +769,8 @@ function compactBoardTitle(title, span = 2) {
   if (!clean) return "";
   const firstWord = clean.split(" ")[0];
   if (span <= 1) return firstWord.length > 4 ? `${firstWord.slice(0, 4)}...` : firstWord;
-  if (span === 2) return clean.length > 8 ? `${clean.slice(0, 8)}...` : clean;
-  return clean.length > 16 ? `${clean.slice(0, 16)}...` : clean;
+  if (span === 2) return clean.length > 18 ? `${clean.slice(0, 18)}...` : clean;
+  return clean.length > 24 ? `${clean.slice(0, 24)}...` : clean;
 }
 
 function boardPieceStyle(index, totalSlots = DAILY_BOARD_GOAL) {

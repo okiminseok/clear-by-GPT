@@ -680,12 +680,16 @@ button.progress-segment {
 
 .reward-card {
   display: grid;
-  gap: 14px;
-  padding: 15px;
+  gap: 12px;
+  padding: 6px 0 0;
   width: 100%;
   color: inherit;
   text-align: left;
   cursor: pointer;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .reward-head {
@@ -697,11 +701,11 @@ button.progress-segment {
 
 .today-summary {
   display: grid;
-  gap: 3px;
+  gap: 2px;
 }
 
 .today-summary span,
-.month-summary strong {
+.month-summary span {
   color: var(--muted);
   font-size: 12px;
   font-weight: 850;
@@ -710,24 +714,21 @@ button.progress-segment {
 .today-summary strong {
   color: var(--ink);
   font-family: "Noto Sans KR", system-ui, sans-serif;
-  font-size: clamp(22px, 6.3vw, 34px);
+  font-size: clamp(25px, 7vw, 38px);
   font-weight: 900;
   line-height: 1.05;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
 }
 
 .month-summary {
   display: flex;
   align-items: center;
-  gap: 7px;
-  color: var(--muted);
-}
-
-.month-summary span {
-  color: inherit;
-  font-size: 12px;
-  font-weight: 850;
-  letter-spacing: 0;
+  justify-content: center;
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  color: color-mix(in srgb, var(--ink) 54%, transparent);
 }
 
 .today-board {
@@ -738,11 +739,11 @@ button.progress-segment {
   gap: 6px;
   align-items: stretch;
   min-height: 92px;
-  border-radius: 14px;
-  padding: 10px;
+  border-radius: 18px;
+  padding: 10px 8px;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--mint) 7%, transparent), transparent 58%),
-    color-mix(in srgb, var(--ink) 3%, transparent);
+    linear-gradient(135deg, color-mix(in srgb, var(--mint) 5%, transparent), transparent 62%),
+    color-mix(in srgb, var(--ink) 2.4%, transparent);
 }
 
 .today-board.complete {
@@ -789,19 +790,20 @@ button.progress-segment {
   min-height: 38px;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--title-edge);
+  border: 1px solid color-mix(in srgb, var(--title-edge) 84%, transparent);
   border-radius: 13px 10px 14px 9px;
-  padding: 7px 10px;
+  padding: 7px 8px;
   background: color-mix(in srgb, var(--mint) 70%, white);
   color: var(--ink);
-  font-size: 13px;
+  font-size: clamp(12px, 3.2vw, 13px);
   font-weight: 900;
-  line-height: 1.15;
+  line-height: 1.12;
   text-align: center;
   transform: rotate(var(--tilt, 0deg));
-  box-shadow: 2px 2px 0 color-mix(in srgb, var(--title-edge) 82%, transparent);
+  box-shadow: 1.5px 2px 0 color-mix(in srgb, var(--title-edge) 58%, transparent);
   overflow: hidden;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: keep-all;
   cursor: pointer;
 }
 
@@ -841,10 +843,10 @@ button.progress-segment {
 
 .board-piece.empty {
   min-height: 30px;
-  border-color: color-mix(in srgb, var(--title-edge) 18%, transparent);
-  background: color-mix(in srgb, white 36%, transparent);
+  border-color: color-mix(in srgb, var(--title-edge) 10%, transparent);
+  background: color-mix(in srgb, white 28%, transparent);
   box-shadow: none;
-  opacity: 0.56;
+  opacity: 0.5;
 }
 
 .board-piece.empty::after {
@@ -1444,13 +1446,23 @@ button.progress-segment {
 }
 
 :root[data-theme="dark"] .task-form,
-:root[data-theme="dark"] .reward-card,
 :root[data-theme="dark"] .stat-strip,
 :root[data-theme="dark"] .history-list,
 :root[data-theme="dark"] .calendar-panel {
   border-color: var(--line);
   background: var(--panel);
   box-shadow: none;
+}
+
+:root[data-theme="dark"] .reward-card {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .month-summary {
+  background: color-mix(in srgb, white 5%, transparent);
+  color: color-mix(in srgb, var(--ink) 58%, transparent);
 }
 
 :root[data-theme="dark"] .task-form {
