@@ -903,17 +903,17 @@ button:disabled {
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .finish-icon {
-  font-size: clamp(62px, 18vw, 112px);
+  font-size: clamp(48px, 13vw, 78px);
   line-height: 1;
 }
 
 .finish-title {
   margin: 0;
-  font-size: clamp(42px, 12vw, 76px);
+  font-size: clamp(36px, 10.5vw, 64px);
   line-height: 1.1;
   letter-spacing: 0;
   font-family: "Noto Sans KR", sans-serif;
