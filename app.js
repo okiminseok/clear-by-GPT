@@ -611,8 +611,14 @@ function renderHome() {
 
       <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
         <div class="reward-head">
-          <span>오늘 <strong>${todayCount}</strong>개 완료</span>
-          <span>${formatMonthLabel(new Date())}</span>
+          <div class="today-summary">
+            <span>오늘 한 일</span>
+            <strong>${todayCount}</strong>
+          </div>
+          <div class="month-summary">
+            <span>${formatMonthLabel(new Date())}</span>
+            <strong>끝낸 일</strong>
+          </div>
         </div>
         ${renderCalendar({ mini: true, selectedDate: todayKey(), month: new Date(), counts, showHeader: false })}
       </div>
