@@ -37,17 +37,58 @@ const finishMessages = [
   ["오늘의 퍼즐 한 조각 맞췄다.", "그림이 조금씩 완성되고 있어 🧩"],
 ];
 
-const encouragements = [
-  "좋아, 하나 줄었다.",
-  "방금 꽤 가볍게 넘겼어.",
-  "이 속도면 금방이다.",
-  "한 조각만 보면 몸이 먼저 움직여.",
-  "괜찮아. 다음 한 조각만.",
-  "이미 시작한 사람이 제일 세다.",
-  "깔끔하게 한 칸 전진.",
-  "머릿속보다 현실이 쉽다.",
-  "좋아. 지금 흐름 괜찮다.",
-  "끝이 보이기 시작했어.",
+const commonMentions = [
+  "이거 하나만",
+  "별 거 아니야",
+  "쉽다 쉬워",
+  "잘 하고 있어",
+  "아주 좋아",
+  "오. 좋은데?",
+  "딱 좋아",
+  "나쁘지 않은데?",
+  "오, 움직였다",
+  "할 수 있네",
+  "지금처럼만",
+  "대충 해도 돼",
+  "완벽 말고 이거",
+  "잘한다 잘한다",
+];
+
+const earlyMentions = [
+  "10초도 안 걸릴걸?",
+  "시작만 하면, 나머지는 껌이야.",
+  "숨 한 번 쉬면 끝나.",
+  "맛보기로 딱 하나만.",
+  "시작이 반이야.",
+  "재채기보다 빨리 끝나.",
+  "눈 깜빡할 사이에 끝나.",
+  "첫 칸만 넘기자",
+  "시동만 걸면 돼",
+];
+
+const middleMentions = [
+  "좋아, 흐름 탔어.",
+  "흐름 탔어",
+  "지금 아주 좋아",
+  "지금처럼만 가면 돼.",
+  "지금 좋아.",
+  "한 번에 하나씩!",
+  "조금씩 정리되고 있어.",
+  "계속 작게 가면 된다.",
+  "지금 리듬 좋아",
+  "여기까지 온 김에 하나만 더.",
+  "지금 대로면 충분해.",
+  "그냥 이 한 칸만 넘기자.",
+];
+
+const finalMentions = [
+  "이제 끝이 보인다.",
+  "거의 다 했어.",
+  "조금만 더 하면 마음이 가벼워져.",
+  "이제 거의 마지막.",
+  "거의 다 왔어.",
+  "진짜 다 왔다.",
+  "이제 마무리야.",
 ];
 
 const finishIcons = ["🎉", "✨", "🌟", "🔥", "💎", "🚀", "🏆", "⚡"];
@@ -114,6 +155,33 @@ function escapeHTML(value) {
 
 function pick(list) {
   return list[Math.floor(Math.random() * list.length)];
+}
+
+function mentionPoolForStep(task) {
+  if (!task?.steps?.length) return commonMentions;
+
+  const index = task.currentIndex || 0;
+  const total = task.steps.length;
+  let stageMentions = middleMentions;
+
+  if (index >= Math.max(total - 2, 0)) {
+    stageMentions = finalMentions;
+  } else if (index < 3) {
+    stageMentions = earlyMentions;
+  } else if (index > total - 3) {
+    stageMentions = [];
+  }
+
+  return [...commonMentions, ...stageMentions];
+}
+
+function pickStepMention(task) {
+  const pool = mentionPoolForStep(task);
+  return pick(pool.length ? pool : commonMentions);
+}
+
+function refreshStepMention(task) {
+  state.lastMotivation = pickStepMention(task);
 }
 
 function pickFinishMessage(todayCount) {
@@ -186,7 +254,7 @@ async function createTask(rawTitle) {
       updatedAt: new Date().toISOString(),
     };
     state.route = "runner";
-    state.lastMotivation = pick(encouragements);
+    refreshStepMention(state.activeTask);
     state.previousProgress = 0;
     persistActive();
     if (state.handsfree) startRecognition();
@@ -275,6 +343,7 @@ function moveStep(delta) {
   if (!task) return;
   state.previousProgress = taskProgress(task);
   task.currentIndex = clamp(task.currentIndex + delta, 0, task.steps.length - 1);
+  refreshStepMention(task);
   task.updatedAt = new Date().toISOString();
   persistActive();
   render();
@@ -290,7 +359,6 @@ function completeCurrentStep() {
     state.previousProgress = taskProgress(task);
     task.done.push(index);
     task.done.sort((a, b) => a - b);
-    state.lastMotivation = pick(encouragements);
   }
 
   if (task.done.length >= task.steps.length) {
@@ -300,6 +368,7 @@ function completeCurrentStep() {
 
   const nextIndex = task.steps.findIndex((_, stepIndex) => !task.done.includes(stepIndex));
   task.currentIndex = nextIndex === -1 ? task.currentIndex : nextIndex;
+  refreshStepMention(task);
   task.updatedAt = new Date().toISOString();
   persistActive();
   render();
@@ -492,7 +561,7 @@ function renderRunner() {
       <div class="step-stage">
         <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
         <p class="step-text">${escapeHTML(step.text)}</p>
-        <div class="motivation">${escapeHTML(state.lastMotivation || pick(encouragements))}</div>
+        <div class="motivation">${escapeHTML(state.lastMotivation || pickStepMention(task))}</div>
       </div>
       <div class="runner-actions">
         <button class="secondary-button" data-action="prev" ${index === 0 ? "disabled" : ""}>이전</button>
