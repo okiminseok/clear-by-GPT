@@ -580,6 +580,26 @@ button:disabled {
   will-change: width;
 }
 
+.segmented-progress {
+  display: grid;
+  grid-template-columns: repeat(var(--segments), minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+
+.progress-segment {
+  display: block;
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+
+.progress-segment.done {
+  background: var(--mint);
+  transform: scaleY(1.08);
+}
+
 .step-map {
   display: flex;
   flex-wrap: wrap;
@@ -753,6 +773,7 @@ button:disabled {
   box-shadow: 2px 2px 0 color-mix(in srgb, var(--title-edge) 82%, transparent);
   overflow: hidden;
   overflow-wrap: anywhere;
+  cursor: pointer;
 }
 
 .board-piece::after {

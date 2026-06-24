@@ -478,7 +478,9 @@ function completeTask() {
     id: task.id,
     title: task.title,
     steps: task.steps,
+    createdAt: task.createdAt,
     completedAt: new Date().toISOString(),
+    durationMs: Math.max(0, new Date() - new Date(task.createdAt || Date.now())),
     dateKey: todayKey(),
   };
 
@@ -488,6 +490,7 @@ function completeTask() {
   state.route = "finish";
   state.finishMessage = resolveFinishMessage(pickFinishMessage(todayDoneCount), task.title);
   state.finishIcon = pick(finishIcons);
+  state.finishTotalSteps = task.steps.length;
   state.lastClearedTask = finishedTask;
   state.todayDoneCount = todayDoneCount;
   persistCompleted();
@@ -718,7 +721,7 @@ function renderTodayBoard(tasks, todayCount) {
   const boardTasks = tasks.slice(0, DAILY_BOARD_GOAL);
   const extraTasks = tasks.slice(DAILY_BOARD_GOAL, DAILY_BOARD_MAX_VISIBLE);
   const pieces = boardTasks
-    .map((task, index) => renderBoardPiece(task.title, index, { recent: index === 0, totalSlots: DAILY_BOARD_GOAL }))
+    .map((task, index) => renderBoardPiece(task, index, { recent: index === 0, totalSlots: DAILY_BOARD_GOAL }))
     .join("");
   const emptyCount = Math.max(0, DAILY_BOARD_GOAL - boardTasks.length);
   const emptyPieces = Array.from({ length: emptyCount }, (_, index) => {
@@ -726,7 +729,7 @@ function renderTodayBoard(tasks, todayCount) {
     return `<span class="board-piece empty" style="${boardPieceStyle(slot, DAILY_BOARD_GOAL)}" aria-hidden="true"></span>`;
   }).join("");
   const extraPieces = extraTasks
-    .map((task, index) => renderBoardPiece(task.title, index, { recent: index === 0 && boardTasks.length >= DAILY_BOARD_GOAL, totalSlots: Math.max(extraTasks.length, 3) }))
+    .map((task, index) => renderBoardPiece(task, index, { recent: index === 0 && boardTasks.length >= DAILY_BOARD_GOAL, totalSlots: Math.max(extraTasks.length, 3) }))
     .join("");
 
   return `
@@ -747,12 +750,28 @@ function renderTodayBoard(tasks, todayCount) {
   `;
 }
 
-function renderBoardPiece(title, index, { recent = false, totalSlots = DAILY_BOARD_GOAL } = {}) {
+function renderBoardPiece(taskOrTitle, index, { recent = false, totalSlots = DAILY_BOARD_GOAL } = {}) {
+  const task = typeof taskOrTitle === "object" && taskOrTitle ? taskOrTitle : null;
+  const title = task ? task.title : taskOrTitle;
+  const layout = boardLayout(totalSlots)[index % boardLayout(totalSlots).length];
+  const shownTitle = compactBoardTitle(title, layout.span);
+  const detailAttrs = task
+    ? `data-action="board-detail" data-id="${escapeHTML(task.id)}" aria-label="${escapeHTML(title)} 완료 정보 보기"`
+    : "";
   return `
-    <span class="board-piece piece-${index % 6} ${recent ? "recent" : ""}" style="${boardPieceStyle(index, totalSlots)}">
-      ${escapeHTML(title)}
-    </span>
+    <button class="board-piece piece-${index % 6} ${recent ? "recent" : ""}" style="${boardPieceStyle(index, totalSlots)}" type="button" ${detailAttrs} title="${escapeHTML(title)}">
+      ${escapeHTML(shownTitle)}
+    </button>
   `;
+}
+
+function compactBoardTitle(title, span = 2) {
+  const clean = String(title || "").trim().replace(/\s+/g, " ");
+  if (!clean) return "";
+  const firstWord = clean.split(" ")[0];
+  if (span <= 1) return firstWord.length > 4 ? `${firstWord.slice(0, 4)}...` : firstWord;
+  if (span === 2) return clean.length > 8 ? `${clean.slice(0, 8)}...` : clean;
+  return clean.length > 16 ? `${clean.slice(0, 16)}...` : clean;
 }
 
 function boardPieceStyle(index, totalSlots = DAILY_BOARD_GOAL) {
@@ -841,7 +860,7 @@ function renderRunner() {
         <span>${escapeHTML(task.title)}</span>
         <strong>${progress}%</strong>
       </div>
-      <div class="progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="${progress}" style="--progress:${progress}%"></div></div>
+      ${renderSegmentedProgress(task.steps.length, task.done)}
       ${renderStepMap(task)}
       <div class="step-stage ${isDone ? "completed-step" : ""}">
         ${isDone ? `<div class="completed-badge">클리어됨</div>` : ""}
@@ -890,7 +909,7 @@ function renderFinish() {
           <span>완료</span>
           <strong>100%</strong>
         </div>
-        <div class="progress-track"><div class="progress-fill" data-from-progress="${state.previousProgress}" data-progress="100" style="--progress:100%"></div></div>
+        ${renderSegmentedProgress(state.finishTotalSteps || 1, Array.from({ length: state.finishTotalSteps || 1 }, (_, index) => index))}
       </div>
       <div class="finish-copy">
         <div class="finish-icon" aria-hidden="true">${escapeHTML(state.finishIcon || pick(finishIcons))}</div>
@@ -901,7 +920,7 @@ function renderFinish() {
             ? `
               <div class="finish-board-add">
                 <span>오늘 비운 것에 추가됨</span>
-                ${renderBoardPiece(state.lastClearedTask.title, Math.max((state.todayDoneCount || 1) - 1, 0), { recent: true })}
+                ${renderBoardPiece(state.lastClearedTask, Math.max((state.todayDoneCount || 1) - 1, 0), { recent: true })}
               </div>
             `
             : ""
@@ -917,6 +936,18 @@ function renderFinish() {
         <button class="secondary-button" data-action="history">끝낸 일들 보기</button>
       </div>
     </section>
+  `;
+}
+
+function renderSegmentedProgress(total, doneIndexes = []) {
+  const doneSet = new Set(doneIndexes);
+  const count = clamp(Number(total) || 1, 1, MAX_STEPS);
+  return `
+    <div class="segmented-progress" style="--segments:${count}" aria-label="${count}단계 진행률">
+      ${Array.from({ length: count }, (_, index) => `
+        <span class="progress-segment ${doneSet.has(index) ? "done" : ""}"></span>
+      `).join("")}
+    </div>
   `;
 }
 
@@ -1039,7 +1070,10 @@ function bindEvents() {
       return;
     }
 
-    element.addEventListener("click", () => handleAction(element));
+    element.addEventListener("click", (event) => {
+      event.stopPropagation();
+      handleAction(element);
+    });
     element.addEventListener("keydown", (event) => {
       if ((event.key === "Enter" || event.key === " ") && element.getAttribute("role") === "button") {
         event.preventDefault();
@@ -1093,6 +1127,7 @@ function handleAction(element) {
   if (action === "ongoing-task") openOngoingTask();
   if (action === "dismiss-active") dismissActiveTask();
   if (action === "delete-completed") deleteCompletedTask(element.dataset.id);
+  if (action === "board-detail") showBoardDetail(element.dataset.id);
 
   if (action === "select-date") {
     state.selectedDate = element.dataset.date;
@@ -1109,6 +1144,13 @@ function handleAction(element) {
     );
     render();
   }
+}
+
+function showBoardDetail(id) {
+  const task = state.completedTasks.find((item) => item.id === id) || (state.lastClearedTask?.id === id ? state.lastClearedTask : null);
+  if (!task) return;
+  const duration = formatDuration(task.durationMs || (new Date(task.completedAt) - new Date(task.createdAt || task.completedAt)));
+  setToast(`${task.title} · ${duration}`);
 }
 
 function manageSpeedTicker() {
@@ -1189,6 +1231,17 @@ function formatTime(iso) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(iso));
+}
+
+function formatDuration(ms) {
+  const seconds = Math.max(0, Math.round(Number(ms || 0) / 1000));
+  if (seconds < 60) return `${Math.max(1, seconds)}초 걸렸어`;
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  if (minutes < 60) return rest ? `${minutes}분 ${rest}초 걸렸어` : `${minutes}분 걸렸어`;
+  const hours = Math.floor(minutes / 60);
+  const minuteRest = minutes % 60;
+  return minuteRest ? `${hours}시간 ${minuteRest}분 걸렸어` : `${hours}시간 걸렸어`;
 }
 
 function toggleHandsfree() {
