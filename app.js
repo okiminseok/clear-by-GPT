@@ -577,16 +577,18 @@ function countByDate() {
 }
 
 function render() {
-  if (state.route === "runner" && !state.activeTask) state.route = "home";
+  if ((state.route === "runner" || state.route === "map") && !state.activeTask) state.route = "home";
 
   const view =
     state.route === "runner"
       ? renderRunner()
-      : state.route === "finish"
-        ? renderFinish()
-        : state.route === "history"
-          ? renderHistory()
-          : renderHome();
+      : state.route === "map"
+        ? renderTaskMap()
+        : state.route === "finish"
+          ? renderFinish()
+          : state.route === "history"
+            ? renderHistory()
+            : renderHome();
 
   app.innerHTML = `${view}${state.menuOpen ? renderMenu() : ""}${state.isLoading ? renderLoading() : ""}${state.toast ? renderToast() : ""}`;
   bindEvents();
@@ -860,8 +862,8 @@ function renderRunner() {
         <span>${escapeHTML(task.title)}</span>
         <strong>${progress}%</strong>
       </div>
-      ${renderSegmentedProgress(task.steps.length, task.done)}
-      ${renderStepMap(task)}
+      ${renderSegmentedProgress(task.steps.length, task.done, task.currentIndex, true)}
+      <button class="map-open-button" data-action="map">전체 조각 보기</button>
       <div class="step-stage ${isDone ? "completed-step" : ""}">
         ${isDone ? `<div class="completed-badge">클리어됨</div>` : ""}
         <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
@@ -875,28 +877,6 @@ function renderRunner() {
         <button class="done-button ${isDone ? "completed" : ""}" data-action="done">${isDone ? "클리어됨" : "클리어"}</button>
       </div>
     </section>
-  `;
-}
-
-function renderStepMap(task) {
-  return `
-    <div class="step-map" aria-label="조각 진행 상태">
-      ${task.steps
-        .map((_, index) => {
-          const isCurrent = index === task.currentIndex;
-          const isDone = task.done.includes(index);
-          const label = isDone ? "클리어됨" : isCurrent ? "현재 조각" : "남은 조각";
-          return `
-            <button
-              class="step-dot ${isDone ? "done" : ""} ${isCurrent ? "current" : ""}"
-              data-action="select-step"
-              data-index="${index}"
-              aria-label="${index + 1}번째 조각, ${label}"
-            ></button>
-          `;
-        })
-        .join("")}
-    </div>
   `;
 }
 
@@ -939,16 +919,95 @@ function renderFinish() {
   `;
 }
 
-function renderSegmentedProgress(total, doneIndexes = []) {
+function renderSegmentedProgress(total, doneIndexes = [], currentIndex = -1, interactive = false) {
   const doneSet = new Set(doneIndexes);
   const count = clamp(Number(total) || 1, 1, MAX_STEPS);
   return `
     <div class="segmented-progress" style="--segments:${count}" aria-label="${count}단계 진행률">
-      ${Array.from({ length: count }, (_, index) => `
-        <span class="progress-segment ${doneSet.has(index) ? "done" : ""}"></span>
-      `).join("")}
+      ${Array.from({ length: count }, (_, index) => {
+        const isDone = doneSet.has(index);
+        const isCurrent = index === currentIndex;
+        const className = `progress-segment ${isDone ? "done" : ""} ${isCurrent ? "current" : ""}`;
+        const label = `${index + 1}번째 조각${isDone ? ", 클리어됨" : ""}${isCurrent ? ", 현재" : ""}`;
+        return interactive
+          ? `<button class="${className}" data-action="select-step" data-index="${index}" aria-label="${label}"></button>`
+          : `<span class="${className}" aria-label="${label}"></span>`;
+      }).join("")}
     </div>
   `;
+}
+
+function renderTaskMap() {
+  const task = state.activeTask;
+  if (!task) return renderHome();
+  assignStepMentions(task);
+  const progress = taskProgress(task);
+  const rows = [];
+
+  for (let start = 0; start < task.steps.length; start += 3) {
+    const rowIndex = rows.length;
+    const rowSteps = task.steps.slice(start, start + 3).map((step, offset) => ({
+      step,
+      index: start + offset,
+    }));
+    const displaySteps = rowIndex % 2 === 0 ? rowSteps : rowSteps.reverse();
+    rows.push(`
+      <div class="task-map-row ${rowIndex % 2 ? "reverse" : ""}">
+        ${displaySteps
+          .map(({ step, index }, displayIndex) => {
+            const visual = splitStepVisual(step);
+            const isDone = task.done.includes(index);
+            const isCurrent = index === task.currentIndex;
+            return `
+              <button
+                class="task-map-node ${isDone ? "done" : ""} ${isCurrent ? "current" : ""}"
+                data-action="map-step"
+                data-index="${index}"
+                aria-label="${index + 1}번째 조각으로 이동"
+              >
+                <span class="task-map-node-icon" aria-hidden="true">${escapeHTML(visual.icon)}</span>
+                <span class="task-map-node-text">${escapeHTML(compactMapStepText(visual.text))}</span>
+              </button>
+              ${displayIndex < displaySteps.length - 1 ? `<span class="task-map-line" aria-hidden="true"></span>` : ""}
+            `;
+          })
+          .join("")}
+      </div>
+      ${start + 3 < task.steps.length ? `<div class="task-map-drop ${rowIndex % 2 ? "left" : "right"}" aria-hidden="true"></div>` : ""}
+    `);
+  }
+
+  return `
+    <section class="task-map-view">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="circle-button" data-action="runner" aria-label="진행 화면으로 돌아가기">←</button>
+        </div>
+        <button class="mode-toggle" data-action="theme" aria-label="${state.theme === "dark" ? "라이트 모드" : "다크 모드"}"></button>
+      </div>
+      <div class="runner-meta">
+        <span>${escapeHTML(task.title)}</span>
+        <strong>${progress}%</strong>
+      </div>
+      ${renderSegmentedProgress(task.steps.length, task.done, task.currentIndex, true)}
+      <div class="task-map-copy">
+        <h1>전체 조각</h1>
+        <p>만만한 것부터 눌러서 들어가.</p>
+      </div>
+      <div class="task-map-board" aria-label="전체 조각 지도">
+        ${rows.join("")}
+      </div>
+      <button class="primary-button" data-action="runner">현재 조각으로 돌아가기</button>
+    </section>
+  `;
+}
+
+function compactMapStepText(value) {
+  const text = String(value || "").trim();
+  if (text.length <= 10) return text;
+  const firstWord = text.split(/\s+/)[0] || text;
+  if (firstWord.length <= 7) return firstWord;
+  return `${text.slice(0, 7)}..`;
 }
 
 function renderHistory() {
@@ -1115,9 +1174,15 @@ function handleAction(element) {
   if (action === "home") restartHome();
   if (action === "resume") resumeActiveTask();
   if (action === "history") openHistory();
+  if (action === "runner") setRoute("runner");
+  if (action === "map") setRoute("map");
   if (action === "prev") moveStep(-1);
   if (action === "next") moveStep(1);
   if (action === "select-step") jumpToStep(element.dataset.index);
+  if (action === "map-step") {
+    state.route = "runner";
+    jumpToStep(element.dataset.index);
+  }
   if (action === "done") completeCurrentStep();
   if (action === "handsfree") toggleHandsfree();
   if (action === "speed") toggleSpeedMode();

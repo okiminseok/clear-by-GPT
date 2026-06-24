@@ -589,10 +589,17 @@ button:disabled {
 
 .progress-segment {
   display: block;
+  appearance: none;
+  border: 0;
+  padding: 0;
   height: 7px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--ink) 12%, transparent);
   transition: background-color 180ms ease, transform 180ms ease;
+}
+
+button.progress-segment {
+  cursor: pointer;
 }
 
 .progress-segment.done {
@@ -600,41 +607,28 @@ button:disabled {
   transform: scaleY(1.08);
 }
 
-.step-map {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 7px;
-  padding: 2px 8px 0;
-}
-
-.step-dot {
-  width: 13px;
-  height: 13px;
-  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--ink) 7%, transparent);
-  box-shadow: none;
-  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
-}
-
-.step-dot.done {
-  border-color: var(--mint);
-  background: var(--mint);
-}
-
-.step-dot.current {
+.progress-segment.current {
   border-color: var(--ink);
-  background: var(--panel-strong);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 22%, transparent);
-  transform: scale(1.08);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 24%, transparent);
+  transform: scaleY(1.25);
 }
 
-.step-dot.done.current {
-  background: var(--mint);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--mint) 26%, transparent),
-    inset 0 0 0 3px color-mix(in srgb, var(--ink) 13%, transparent);
+.progress-segment:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.map-open-button {
+  justify-self: end;
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--mint) 16%, transparent);
+  color: var(--mint-dark);
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
 }
 
 .stat-strip {
@@ -1021,7 +1015,7 @@ button:disabled {
 .task-runner {
   display: grid;
   min-height: calc(100svh - 36px);
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto auto auto auto 1fr auto;
   gap: 18px;
 }
 
@@ -1103,20 +1097,128 @@ button:disabled {
   font-weight: 700;
 }
 
+.task-map-view {
+  display: grid;
+  min-height: calc(100svh - 36px);
+  grid-template-rows: auto auto auto auto 1fr auto;
+  gap: 16px;
+}
+
+.task-map-copy {
+  display: grid;
+  gap: 5px;
+  padding-top: 6px;
+}
+
+.task-map-copy h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(30px, 8vw, 48px);
+  line-height: 1;
+  font-weight: 950;
+}
+
+.task-map-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.task-map-board {
+  align-self: center;
+  display: grid;
+  gap: 10px;
+  padding: 18px 8px 22px;
+}
+
+.task-map-row {
+  display: grid;
+  grid-template-columns: minmax(74px, 1fr) 28px minmax(74px, 1fr) 28px minmax(74px, 1fr);
+  align-items: center;
+}
+
+.task-map-row .task-map-line {
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 24%, transparent);
+}
+
+.task-map-drop {
+  width: 3px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 24%, transparent);
+}
+
+.task-map-drop.right {
+  justify-self: end;
+  margin-right: 38px;
+}
+
+.task-map-drop.left {
+  justify-self: start;
+  margin-left: 38px;
+}
+
+.task-map-node {
+  appearance: none;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 5px;
+  min-height: 86px;
+  aspect-ratio: 1;
+  border: 2px solid color-mix(in srgb, var(--ink) 24%, transparent);
+  border-radius: 999px;
+  padding: 12px 8px;
+  background: color-mix(in srgb, var(--panel-strong) 82%, transparent);
+  color: var(--ink);
+  box-shadow: 0 8px 0 color-mix(in srgb, var(--shadow-ink) 10%, transparent);
+  text-align: center;
+}
+
+.task-map-node.done {
+  border-color: color-mix(in srgb, var(--mint) 72%, var(--ink) 18%);
+  background: var(--mint);
+  color: #17130f;
+}
+
+.task-map-node.current {
+  border-color: var(--ink);
+  box-shadow:
+    0 8px 0 color-mix(in srgb, var(--shadow-ink) 12%, transparent),
+    0 0 0 5px color-mix(in srgb, var(--mint) 22%, transparent);
+}
+
+.task-map-node-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.task-map-node-text {
+  max-width: 100%;
+  color: inherit;
+  font-size: clamp(12px, 3.2vw, 15px);
+  font-weight: 950;
+  line-height: 1.1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 :root[data-theme="dark"] .runner-meta,
 :root[data-theme="dark"] .motivation,
 :root[data-theme="dark"] .clear-rule {
   color: color-mix(in srgb, var(--mint) 72%, transparent);
 }
 
-:root[data-theme="dark"] .step-dot {
+:root[data-theme="dark"] .task-map-node {
   border-color: var(--line-strong);
-  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  background: var(--panel-strong);
 }
 
-:root[data-theme="dark"] .step-dot.current {
+:root[data-theme="dark"] .task-map-node.current {
   border-color: var(--mint);
-  background: var(--panel-strong);
 }
 
 :root[data-theme="dark"] .step-stage.completed-step {
