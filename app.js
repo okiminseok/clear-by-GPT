@@ -606,7 +606,7 @@ function renderHome() {
 
       <form class="task-form" data-action="new-task-form">
         <textarea class="task-input" name="task" placeholder="예: 설거지, 방 정리, 컴활책 공부..."></textarea>
-        <button class="submit-arrow" type="submit" aria-label="쪼개기">쪼개기 →</button>
+        <button class="submit-arrow" type="submit" aria-label="작게 쪼개기">작게 쪼개기</button>
       </form>
 
       <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">

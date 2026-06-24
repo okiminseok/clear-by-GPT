@@ -18,7 +18,8 @@
   --radius: 8px;
   --field: #ffffff;
   --track: rgba(23, 19, 15, 0.09);
-  --hero-fill: linear-gradient(135deg, var(--ink) 0%, #4d453d 100%);
+  --title-edge: #4d453d;
+  --hero-fill: linear-gradient(135deg, var(--ink) 0%, var(--title-edge) 100%);
 }
 
 :root[data-theme="dark"] {
@@ -41,6 +42,7 @@
   --button-shadow: none;
   --field: #13131a;
   --track: #1a1a24;
+  --title-edge: var(--muted);
   --hero-fill: linear-gradient(135deg, var(--ink) 0%, var(--muted) 100%);
 }
 
@@ -150,11 +152,12 @@ button:disabled {
   grid-template-rows: repeat(3, 4px);
   align-content: center;
   gap: 0;
+  color: var(--title-edge);
   border-color: transparent;
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
-  row-gap: 1px;
+  row-gap: 2px;
 }
 
 .menu-line {
@@ -371,24 +374,24 @@ button:disabled {
   position: relative;
   display: grid;
   padding: 0;
-  border: 2px solid color-mix(in srgb, var(--ink) 92%, transparent);
+  border: 2px solid var(--title-edge);
   border-radius: 16px;
   background: var(--panel);
-  box-shadow: 6px 6px 0 color-mix(in srgb, var(--ink) 92%, transparent);
+  box-shadow: 6px 6px 0 var(--title-edge);
   overflow: hidden;
 }
 
 .task-input {
-  min-height: 68px;
+  min-height: 64px;
   resize: none;
   border: 0;
   border-radius: 0;
-  padding: 13px 114px 13px 16px;
+  padding: 19px 124px 12px 16px;
   outline: none;
   color: var(--ink);
   background: var(--field);
   font-size: 16px;
-  line-height: 1.35;
+  line-height: 1.25;
 }
 
 .task-input:focus {
@@ -400,9 +403,10 @@ button:disabled {
   right: 10px;
   top: 50%;
   display: grid;
-  width: 94px;
+  width: 104px;
   height: 46px;
   place-items: center;
+  border: 2px solid var(--title-edge);
   border-radius: 12px;
   background: var(--mint);
   color: #17130f;
