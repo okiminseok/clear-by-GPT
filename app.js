@@ -811,12 +811,12 @@ function boardLayout(totalSlots) {
   }
   return [
     { row: 1, start: 1, span: 3 },
-    { row: 1, start: 4, span: 2 },
+    { row: 2, start: 3, span: 3 },
+    { row: 2, start: 6, span: 1 },
     { row: 2, start: 1, span: 2 },
-    { row: 2, start: 3, span: 4 },
     { row: 3, start: 1, span: 3 },
     { row: 3, start: 4, span: 3 },
-    { row: 1, start: 6, span: 1 },
+    { row: 1, start: 4, span: 3 },
   ];
 }
 
