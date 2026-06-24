@@ -102,8 +102,8 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 9px;
-  min-height: 46px;
+  gap: 10px;
+  min-height: 50px;
 }
 
 .topbar-left {
@@ -117,25 +117,28 @@ button:disabled {
 
 .topbar-resume {
   display: grid;
-  flex: 0 1 min(54vw, 230px);
-  min-width: 0;
-  height: 36px;
+  flex: 1 1 auto;
+  min-width: 188px;
+  max-width: 460px;
+  height: 46px;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   border: 1px solid color-mix(in srgb, var(--line) 74%, transparent);
-  border-radius: 999px;
-  padding: 0 10px;
-  background: color-mix(in srgb, var(--panel) 64%, transparent);
+  border-radius: 18px;
+  padding: 0 14px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
   color: var(--ink);
-  box-shadow: 0 8px 22px rgba(55, 48, 38, 0.055);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 70%, transparent) inset,
+    0 10px 26px rgba(55, 48, 38, 0.07);
   backdrop-filter: blur(16px);
 }
 
 .topbar-resume span {
   min-width: max-content;
   color: var(--mint-dark);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 950;
   line-height: 1;
 }
@@ -144,7 +147,7 @@ button:disabled {
   min-width: 0;
   overflow: hidden;
   color: var(--ink);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
   line-height: 1;
   text-overflow: ellipsis;
@@ -154,7 +157,7 @@ button:disabled {
 .topbar-resume em {
   min-width: max-content;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 900;
   line-height: 1;
