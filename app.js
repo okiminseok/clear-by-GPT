@@ -715,24 +715,35 @@ function todayBoardLabel(count) {
 }
 
 function renderTodayBoard(tasks, todayCount) {
-  const visibleCount = tasks.length;
-  const boardSlots = visibleCount < DAILY_BOARD_GOAL
-    ? DAILY_BOARD_GOAL
-    : clamp(visibleCount, DAILY_BOARD_GOAL, DAILY_BOARD_MAX_VISIBLE);
-  const pieces = tasks
-    .map((task, index) => renderBoardPiece(task.title, index, { recent: index === 0, totalSlots: boardSlots }))
+  const boardTasks = tasks.slice(0, DAILY_BOARD_GOAL);
+  const extraTasks = tasks.slice(DAILY_BOARD_GOAL, DAILY_BOARD_MAX_VISIBLE);
+  const pieces = boardTasks
+    .map((task, index) => renderBoardPiece(task.title, index, { recent: index === 0, totalSlots: DAILY_BOARD_GOAL }))
     .join("");
-  const emptyCount = Math.max(0, boardSlots - tasks.length);
+  const emptyCount = Math.max(0, DAILY_BOARD_GOAL - boardTasks.length);
   const emptyPieces = Array.from({ length: emptyCount }, (_, index) => {
-    const slot = index + tasks.length;
-    return `<span class="board-piece empty" style="${boardPieceStyle(slot, boardSlots)}" aria-hidden="true"></span>`;
+    const slot = index + boardTasks.length;
+    return `<span class="board-piece empty" style="${boardPieceStyle(slot, DAILY_BOARD_GOAL)}" aria-hidden="true"></span>`;
   }).join("");
+  const extraPieces = extraTasks
+    .map((task, index) => renderBoardPiece(task.title, index + DAILY_BOARD_GOAL, { recent: index === 0 && boardTasks.length >= DAILY_BOARD_GOAL, totalSlots: DAILY_BOARD_MAX_VISIBLE }))
+    .join("");
 
   return `
-    <div class="today-board slots-${boardSlots} ${todayCount >= DAILY_BOARD_GOAL ? "complete" : ""} ${todayCount >= DAILY_BOARD_MAX_VISIBLE ? "bonus-complete" : ""}">
+    <div class="today-board slots-${DAILY_BOARD_GOAL} ${todayCount >= DAILY_BOARD_GOAL ? "complete" : ""}">
       ${pieces || `<div class="board-empty-copy">하나만 비워보자.</div>`}
       ${emptyPieces}
     </div>
+    ${
+      extraPieces
+        ? `
+          <div class="extra-board ${todayCount >= DAILY_BOARD_MAX_VISIBLE ? "complete" : ""}">
+            <span class="extra-board-label">더 비운 것</span>
+            <div class="extra-board-pieces">${extraPieces}</div>
+          </div>
+        `
+        : ""
+    }
   `;
 }
 
