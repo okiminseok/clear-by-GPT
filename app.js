@@ -79,6 +79,7 @@ const finalMentions = [
 const finishIcons = ["🎉", "✨", "🌟", "🔥", "💎", "🚀", "🏆", "⚡"];
 const stepFallbackEmojis = ["✨", "✦", "💫", "🌟", "⚡", "🎯"];
 const SPEED_LIMIT_SECONDS = 45;
+const DAILY_BOARD_GOAL = 10;
 
 const state = {
   route: "home",
@@ -486,6 +487,8 @@ function completeTask() {
   state.route = "finish";
   state.finishMessage = resolveFinishMessage(pickFinishMessage(todayDoneCount), task.title);
   state.finishIcon = pick(finishIcons);
+  state.lastClearedTask = finishedTask;
+  state.todayDoneCount = todayDoneCount;
   persistCompleted();
   persistActive();
   stopHandsfree();
@@ -652,7 +655,7 @@ function renderHome() {
   const active = state.activeTask;
   const recentToday = state.completedTasks
     .filter((task) => task.dateKey === todayKey())
-    .slice(0, 2);
+    .slice(0, DAILY_BOARD_GOAL);
 
   return `
     <section class="home">
@@ -689,33 +692,56 @@ function renderHome() {
       <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
         <div class="reward-head">
           <div class="today-summary">
-            <span>오늘</span>
-            <strong>${todayCount}개 클리어</strong>
+            <span>오늘 채운 것</span>
+            <strong>${todayCount}개</strong>
           </div>
           <div class="month-summary">
-            <span>기록 보기</span>
+            <span>${todayBoardLabel(todayCount)}</span>
             <strong>→</strong>
           </div>
         </div>
-        <div class="recent-wins">
-          ${
-            recentToday.length
-              ? recentToday
-                  .map(
-                    (task) => `
-                      <div class="recent-win">
-                        <span>${escapeHTML(task.title)}</span>
-                        <strong>${formatTime(task.completedAt)}</strong>
-                      </div>
-                    `,
-                  )
-                  .join("")
-              : `<div class="recent-win empty-win">아직 비어 있어. 하나만 클리어해보자.</div>`
-          }
-        </div>
+        ${renderTodayBoard(recentToday, todayCount)}
       </div>
     </section>
   `;
+}
+
+function todayBoardLabel(count) {
+  if (count >= DAILY_BOARD_GOAL) return "오늘 판 완성";
+  if (count <= 0) return "첫 조각 기다리는 중";
+  return `${DAILY_BOARD_GOAL - count}개 더 채우기`;
+}
+
+function renderTodayBoard(tasks, todayCount) {
+  const pieces = tasks
+    .map((task, index) => renderBoardPiece(task.title, index, { recent: index === 0 }))
+    .join("");
+  const emptyCount = Math.max(0, Math.min(DAILY_BOARD_GOAL - tasks.length, DAILY_BOARD_GOAL));
+  const emptyPieces = Array.from({ length: emptyCount }, (_, index) => {
+    const slot = index + tasks.length;
+    return `<span class="board-piece empty" style="${boardPieceStyle(slot)}" aria-hidden="true"></span>`;
+  }).join("");
+
+  return `
+    <div class="today-board ${todayCount >= DAILY_BOARD_GOAL ? "complete" : ""}">
+      ${pieces || `<div class="board-empty-copy">아직 비어 있어. 하나만 채워보자.</div>`}
+      ${emptyPieces}
+    </div>
+  `;
+}
+
+function renderBoardPiece(title, index, { recent = false } = {}) {
+  return `
+    <span class="board-piece piece-${index % 6} ${recent ? "recent" : ""}" style="${boardPieceStyle(index)}">
+      ${escapeHTML(title)}
+    </span>
+  `;
+}
+
+function boardPieceStyle(index) {
+  const rotations = [-1.2, 0.8, -0.4, 1.1, -0.9, 0.4, 1.3, -0.7, 0.6, -1.1];
+  const spans = [2, 2, 3, 2, 3, 2, 2, 3, 2, 3];
+  return `--tilt:${rotations[index % rotations.length]}deg;--span:${spans[index % spans.length]}`;
 }
 
 function renderRunner() {
@@ -794,6 +820,16 @@ function renderFinish() {
         <div class="finish-icon" aria-hidden="true">${escapeHTML(state.finishIcon || pick(finishIcons))}</div>
         <h1 class="finish-title">${escapeHTML(message[0])}</h1>
         <p class="finish-subtitle">${escapeHTML(message[1])}</p>
+        ${
+          state.lastClearedTask
+            ? `
+              <div class="finish-board-add">
+                <span>오늘 판에 추가됨</span>
+                ${renderBoardPiece(state.lastClearedTask.title, Math.max((state.todayDoneCount || 1) - 1, 0), { recent: true })}
+              </div>
+            `
+            : ""
+        }
         ${
           state.finishSpeedResult
             ? `<div class="finish-speed">${state.finishSpeedResult.total}개 중 ${state.finishSpeedResult.wins}개 스피드 클리어</div>`
