@@ -745,7 +745,7 @@ function renderBoardPiece(title, index, { recent = false, totalSlots = DAILY_BOA
 }
 
 function boardPieceStyle(index, totalSlots = DAILY_BOARD_GOAL) {
-  const rotations = [-0.45, 0.35, -0.2, 0.45, -0.35, 0.18, 0.5, -0.28, 0.22, -0.4];
+  const rotations = [-1.2, 0.8, -0.4, 1.1, -0.9, 0.4, 1.3, -0.7, 0.6, -1.1];
   const spans = boardSpanPattern(totalSlots);
   return `--tilt:${rotations[index % rotations.length]}deg;--span:${spans[index % spans.length]}`;
 }
@@ -753,8 +753,8 @@ function boardPieceStyle(index, totalSlots = DAILY_BOARD_GOAL) {
 function boardSpanPattern(totalSlots) {
   if (totalSlots >= 10) return [2, 2, 2, 3, 3, 3, 3, 2, 2, 2];
   if (totalSlots === 9) return [2, 2, 2, 2, 2, 2, 2, 2, 2];
-  if (totalSlots === 8) return [3, 3, 2, 2, 2, 2, 2, 2];
-  return [3, 3, 2, 2, 2, 3, 3];
+  if (totalSlots === 8) return [3, 2, 1, 2, 4, 3, 2, 1];
+  return [3, 2, 1, 2, 4, 3, 3];
 }
 
 function renderRunner() {

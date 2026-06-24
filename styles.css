@@ -692,14 +692,14 @@ button:disabled {
   border-radius: 14px;
   padding: 10px;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--mint) 4%, transparent), transparent 62%),
-    color-mix(in srgb, var(--ink) 2.5%, transparent);
+    linear-gradient(135deg, color-mix(in srgb, var(--mint) 7%, transparent), transparent 58%),
+    color-mix(in srgb, var(--ink) 3%, transparent);
 }
 
 .today-board.complete {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--mint) 9%, transparent), transparent 64%),
-    color-mix(in srgb, var(--mint) 4%, transparent);
+    linear-gradient(135deg, color-mix(in srgb, var(--mint) 16%, transparent), transparent 62%),
+    color-mix(in srgb, var(--mint) 6%, transparent);
 }
 
 .today-board.bonus-complete {
@@ -714,17 +714,17 @@ button:disabled {
   min-height: 38px;
   align-items: center;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--title-edge) 72%, transparent);
-  border-radius: 11px 9px 12px 10px;
+  border: 1.5px solid var(--title-edge);
+  border-radius: 13px 10px 14px 9px;
   padding: 7px 10px;
-  background: color-mix(in srgb, var(--mint) 34%, white);
+  background: color-mix(in srgb, var(--mint) 70%, white);
   color: var(--ink);
   font-size: 13px;
   font-weight: 900;
   line-height: 1.15;
   text-align: center;
   transform: rotate(var(--tilt, 0deg));
-  box-shadow: 1px 1px 0 color-mix(in srgb, var(--title-edge) 36%, transparent);
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--title-edge) 82%, transparent);
   overflow: hidden;
   overflow-wrap: anywhere;
 }
@@ -732,9 +732,9 @@ button:disabled {
 .board-piece::after {
   content: "";
   position: absolute;
-  inset: 5px;
+  inset: 4px;
   border-radius: inherit;
-  border: 1px solid color-mix(in srgb, white 32%, transparent);
+  border: 1px solid color-mix(in srgb, white 48%, transparent);
   pointer-events: none;
 }
 
@@ -743,11 +743,11 @@ button:disabled {
 }
 
 .board-piece.piece-2 {
-  background: color-mix(in srgb, var(--mint) 24%, white);
+  background: color-mix(in srgb, var(--mint) 42%, white);
 }
 
 .board-piece.piece-3 {
-  background: #eff8ef;
+  background: #e8fbef;
 }
 
 .board-piece.piece-4 {
@@ -756,7 +756,7 @@ button:disabled {
 }
 
 .board-piece.piece-5 {
-  background: #f8f0df;
+  background: #fff4df;
 }
 
 .board-piece.recent {
@@ -765,10 +765,10 @@ button:disabled {
 
 .board-piece.empty {
   min-height: 30px;
-  border-color: color-mix(in srgb, var(--title-edge) 10%, transparent);
-  background: color-mix(in srgb, white 28%, transparent);
+  border-color: color-mix(in srgb, var(--title-edge) 18%, transparent);
+  background: color-mix(in srgb, white 36%, transparent);
   box-shadow: none;
-  opacity: 0.5;
+  opacity: 0.56;
 }
 
 .board-piece.empty::after {
@@ -1211,31 +1211,31 @@ button:disabled {
 
 :root[data-theme="dark"] .today-board {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--mint) 4%, transparent), transparent 60%),
+    linear-gradient(135deg, color-mix(in srgb, var(--mint) 7%, transparent), transparent 58%),
     color-mix(in srgb, white 3%, transparent);
 }
 
 :root[data-theme="dark"] .board-piece {
-  border-color: color-mix(in srgb, var(--mint) 20%, transparent);
-  background: color-mix(in srgb, var(--mint) 10%, var(--panel-strong));
+  border-color: color-mix(in srgb, var(--mint) 34%, transparent);
+  background: color-mix(in srgb, var(--mint) 16%, var(--panel-strong));
   color: var(--ink);
-  box-shadow: 1px 1px 0 color-mix(in srgb, black 48%, transparent);
+  box-shadow: 2px 2px 0 color-mix(in srgb, black 54%, transparent);
 }
 
 :root[data-theme="dark"] .board-piece.piece-1,
 :root[data-theme="dark"] .board-piece.piece-3,
 :root[data-theme="dark"] .board-piece.piece-5 {
-  background: color-mix(in srgb, var(--ink) 5%, var(--panel-strong));
+  background: color-mix(in srgb, var(--ink) 8%, var(--panel-strong));
 }
 
 :root[data-theme="dark"] .board-piece.piece-4 {
-  border-color: color-mix(in srgb, var(--mint) 18%, transparent);
-  background: color-mix(in srgb, var(--mint) 6%, #050507);
+  border-color: color-mix(in srgb, var(--mint) 28%, transparent);
+  background: color-mix(in srgb, var(--mint) 9%, #050507);
   color: var(--mint);
 }
 
 :root[data-theme="dark"] .board-piece.empty {
-  border-color: color-mix(in srgb, var(--muted) 14%, transparent);
+  border-color: color-mix(in srgb, var(--muted) 23%, transparent);
   background: color-mix(in srgb, white 2%, transparent);
 }
 
