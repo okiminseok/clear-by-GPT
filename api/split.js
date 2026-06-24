@@ -137,7 +137,7 @@ function parseOutputSteps(data) {
           .replace(/^\[[ xX]\]\s+/, "")
           .replace(/^["'“”‘’]+|["'“”‘’]+$/g, ""),
       )
-      .filter((line) => line && !/^(steps?|[\]{}[,])\s*[:：]?$/i.test(line)),
+      .filter((line) => line && !isJSONFragment(line)),
   );
 }
 
@@ -157,6 +157,33 @@ function parseJSONSteps(text) {
       // Try the next candidate.
     }
   }
+
+  return parseLooseJSONSteps(stripCodeFence(text));
+}
+
+function parseLooseJSONSteps(text) {
+  const source = String(text || "");
+  const objectMatches = source.match(/\{[^{}]*"text"\s*:[^{}]*\}/g) || [];
+  const objectSteps = objectMatches
+    .map((item) => {
+      try {
+        return JSON.parse(item.replace(/,+$/, ""));
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+
+  if (objectSteps.length) return cleanSteps(objectSteps);
+
+  const pairSteps = [];
+  const pairPattern =
+    /"text"\s*:\s*"([^"]+)"[\s\S]{0,80}?"(?:emoji|icon)"\s*:\s*"([^"]*)"/g;
+  let match;
+  while ((match = pairPattern.exec(source))) {
+    pairSteps.push({ text: match[1], emoji: match[2] });
+  }
+  if (pairSteps.length) return cleanSteps(pairSteps);
 
   return [];
 }
@@ -195,6 +222,7 @@ function formatStep(step, lastFallback = "") {
 
   if (step && typeof step === "object") {
     const text = String(step.text || step.action || step.step || "").trim();
+    if (!text || isJSONFragment(text)) return emptyStep();
     const picked = normalizeEmoji(step.emoji || step.icon, lastFallback);
     return {
       value: [picked.emoji, text].filter(Boolean).join(" ").trim(),
@@ -204,6 +232,8 @@ function formatStep(step, lastFallback = "") {
   }
 
   const value = String(step || "").trim();
+  if (!value || isJSONFragment(value)) return emptyStep();
+
   const match = value.match(/^(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)\s*(.+)$/u);
   if (!match) {
     const picked = pickFallbackEmoji(lastFallback);
@@ -220,6 +250,10 @@ function formatStep(step, lastFallback = "") {
     emoji: picked.emoji,
     fallbackUsed: picked.fallbackUsed,
   };
+}
+
+function emptyStep() {
+  return { value: "", emoji: "", fallbackUsed: false };
 }
 
 function parseStepObjectString(step) {
@@ -249,4 +283,16 @@ function normalizeEmoji(value, lastFallback = "") {
 function pickFallbackEmoji(lastFallback = "") {
   const candidates = FALLBACK_EMOJIS.filter((emoji) => emoji !== lastFallback);
   return candidates[Math.floor(Math.random() * candidates.length)] || FALLBACK_EMOJIS[0];
+}
+
+function isJSONFragment(value) {
+  const text = String(value || "").trim();
+  if (!text) return true;
+  if (/^[\]{}[,]*$/.test(text)) return true;
+  if (/^"?steps"?\s*[:：]?\s*\[?\s*,?$/i.test(text)) return true;
+  if (/^"?(text|emoji|icon|action|step)"?\s*[:：]/i.test(text)) return true;
+  if (/^[{[]\s*"?steps"?\s*[:：]/i.test(text)) return true;
+  if (/^[{,]\s*"?text"?\s*[:：]/i.test(text)) return true;
+  if (/^}\s*,?$/.test(text)) return true;
+  return false;
 }

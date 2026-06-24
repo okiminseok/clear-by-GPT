@@ -110,6 +110,7 @@ const state = {
 };
 
 document.documentElement.dataset.theme = state.theme;
+normalizeActiveTask();
 
 function loadJSON(key, fallback) {
   try {
@@ -305,7 +306,8 @@ function sanitizeSteps(steps, fallbackTitle) {
   const clean = Array.isArray(steps)
     ? steps
         .map((step) => String(step || "").trim())
-        .filter(Boolean)
+        .map(cleanStepText)
+        .filter((step) => step && !isJSONStepFragment(step))
         .slice(0, MAX_STEPS)
     : [];
 
@@ -329,6 +331,53 @@ function splitStepVisual(step) {
     icon: match[1],
     text: match[2].trim() || value,
   };
+}
+
+function cleanStepText(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^[-*•]\s+/, "")
+    .replace(/^\d+[.)]\s+/, "")
+    .replace(/^\[[ xX]\]\s+/, "")
+    .replace(/^["'“”‘’]+|["'“”‘’]+$/g, "")
+    .trim();
+}
+
+function isJSONStepFragment(value) {
+  const text = String(value || "").trim();
+  if (!text) return true;
+  if (/^[\]{}[,]*$/.test(text)) return true;
+  if (/^"?steps"?\s*[:：]?\s*\[?\s*,?$/i.test(text)) return true;
+  if (/^"?(text|emoji|icon|action|step)"?\s*[:：]/i.test(text)) return true;
+  if (/^[{[]\s*"?steps"?\s*[:：]/i.test(text)) return true;
+  if (/^[{,]\s*"?text"?\s*[:：]/i.test(text)) return true;
+  if (/^}\s*,?$/.test(text)) return true;
+  return false;
+}
+
+function normalizeActiveTask() {
+  const task = state.activeTask;
+  if (!task?.steps?.length) return;
+
+  const normalized = [];
+  const indexMap = new Map();
+  task.steps.forEach((step, index) => {
+    const clean = cleanStepText(step);
+    if (!clean || isJSONStepFragment(clean)) return;
+    indexMap.set(index, normalized.length);
+    normalized.push(clean);
+  });
+
+  if (!normalized.length || normalized.length === task.steps.length) return;
+
+  task.steps = normalized;
+  task.done = Array.isArray(task.done)
+    ? task.done.map((index) => indexMap.get(index)).filter((index) => Number.isInteger(index))
+    : [];
+  task.currentIndex = clamp(indexMap.get(task.currentIndex) ?? 0, 0, task.steps.length - 1);
+  task.mentions = [];
+  assignStepMentions(task);
+  persistActive();
 }
 
 function parseStepVisualObject(value) {
