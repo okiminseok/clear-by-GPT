@@ -13,6 +13,8 @@ const SYSTEM_PROMPT =
 4. 장기 작업은 "오늘 분량"부터 정하고 쪼개기
 5. 순서: 초반 3~5개는 극도로 쉽게, 중간은 반복 패턴, 끝은 마무리감
 6. 각 단계에 이모지 1개
+7. 이 앱을 보며 다음 단계로 넘겨야 하므로 휴대폰/화면/브라우저/앱을 못 쓰게 만드는 행동은 금지
+   - 금지 예: 휴대폰 내려놓기, 폰 멀리 두기, 화면 끄기, 앱 닫기, 브라우저 닫기, 알림 끄기
 
 JSON만:
 {"steps":[{"text":"행동","emoji":"🗑️"}]}`;
@@ -222,7 +224,7 @@ function formatStep(step, lastFallback = "") {
 
   if (step && typeof step === "object") {
     const text = String(step.text || step.action || step.step || "").trim();
-    if (!text || isJSONFragment(text)) return emptyStep();
+    if (!text || isJSONFragment(text) || blocksAppUse(text)) return emptyStep();
     const picked = normalizeEmoji(step.emoji || step.icon, lastFallback);
     return {
       value: [picked.emoji, text].filter(Boolean).join(" ").trim(),
@@ -232,7 +234,7 @@ function formatStep(step, lastFallback = "") {
   }
 
   const value = String(step || "").trim();
-  if (!value || isJSONFragment(value)) return emptyStep();
+  if (!value || isJSONFragment(value) || blocksAppUse(value)) return emptyStep();
 
   const match = value.match(/^(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)\s*(.+)$/u);
   if (!match) {
@@ -295,4 +297,11 @@ function isJSONFragment(value) {
   if (/^[{,]\s*"?text"?\s*[:：]/i.test(text)) return true;
   if (/^}\s*,?$/.test(text)) return true;
   return false;
+}
+
+function blocksAppUse(value) {
+  const text = String(value || "").replace(/\s/g, "");
+  const device = /(휴대폰|핸드폰|폰|스마트폰|화면|브라우저|앱)/.test(text);
+  if (!device) return false;
+  return /(놓|내려놓|멀리두|치워|끄|잠그|닫|종료|덮|뒤집|무음|알림끄|방해금지)/.test(text);
 }

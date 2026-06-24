@@ -307,7 +307,7 @@ function sanitizeSteps(steps, fallbackTitle) {
     ? steps
         .map((step) => String(step || "").trim())
         .map(cleanStepText)
-        .filter((step) => step && !isJSONStepFragment(step))
+        .filter((step) => step && !isJSONStepFragment(step) && !blocksAppUse(step))
         .slice(0, MAX_STEPS)
     : [];
 
@@ -355,6 +355,13 @@ function isJSONStepFragment(value) {
   return false;
 }
 
+function blocksAppUse(value) {
+  const text = String(value || "").replace(/\s/g, "");
+  const device = /(휴대폰|핸드폰|폰|스마트폰|화면|브라우저|앱)/.test(text);
+  if (!device) return false;
+  return /(놓|내려놓|멀리두|치워|끄|잠그|닫|종료|덮|뒤집|무음|알림끄|방해금지)/.test(text);
+}
+
 function normalizeActiveTask() {
   const task = state.activeTask;
   if (!task?.steps?.length) return;
@@ -363,7 +370,7 @@ function normalizeActiveTask() {
   const indexMap = new Map();
   task.steps.forEach((step, index) => {
     const clean = cleanStepText(step);
-    if (!clean || isJSONStepFragment(clean)) return;
+    if (!clean || isJSONStepFragment(clean) || blocksAppUse(clean)) return;
     indexMap.set(index, normalized.length);
     normalized.push(clean);
   });
