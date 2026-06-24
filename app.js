@@ -79,7 +79,8 @@ const finalMentions = [
 const finishIcons = ["🎉", "✨", "🌟", "🔥", "💎", "🚀", "🏆", "⚡"];
 const stepFallbackEmojis = ["✨", "✦", "💫", "🌟", "⚡", "🎯"];
 const SPEED_LIMIT_SECONDS = 45;
-const DAILY_BOARD_GOAL = 10;
+const DAILY_BOARD_GOAL = 7;
+const DAILY_BOARD_MAX_VISIBLE = 10;
 
 const state = {
   route: "home",
@@ -655,7 +656,7 @@ function renderHome() {
   const active = state.activeTask;
   const recentToday = state.completedTasks
     .filter((task) => task.dateKey === todayKey())
-    .slice(0, DAILY_BOARD_GOAL);
+    .slice(0, DAILY_BOARD_MAX_VISIBLE);
 
   return `
     <section class="home">
@@ -707,6 +708,7 @@ function renderHome() {
 }
 
 function todayBoardLabel(count) {
+  if (count >= DAILY_BOARD_MAX_VISIBLE) return "보너스까지 채움";
   if (count >= DAILY_BOARD_GOAL) return "오늘 판 완성";
   if (count <= 0) return "첫 조각 기다리는 중";
   return `${DAILY_BOARD_GOAL - count}개 더 채우기`;
@@ -716,14 +718,15 @@ function renderTodayBoard(tasks, todayCount) {
   const pieces = tasks
     .map((task, index) => renderBoardPiece(task.title, index, { recent: index === 0 }))
     .join("");
-  const emptyCount = Math.max(0, Math.min(DAILY_BOARD_GOAL - tasks.length, DAILY_BOARD_GOAL));
+  const emptyTarget = todayCount >= DAILY_BOARD_GOAL ? DAILY_BOARD_MAX_VISIBLE : DAILY_BOARD_GOAL;
+  const emptyCount = Math.max(0, Math.min(emptyTarget - tasks.length, emptyTarget));
   const emptyPieces = Array.from({ length: emptyCount }, (_, index) => {
     const slot = index + tasks.length;
     return `<span class="board-piece empty" style="${boardPieceStyle(slot)}" aria-hidden="true"></span>`;
   }).join("");
 
   return `
-    <div class="today-board ${todayCount >= DAILY_BOARD_GOAL ? "complete" : ""}">
+    <div class="today-board ${todayCount >= DAILY_BOARD_GOAL ? "complete" : ""} ${todayCount >= DAILY_BOARD_MAX_VISIBLE ? "bonus-complete" : ""}">
       ${pieces || `<div class="board-empty-copy">아직 비어 있어. 하나만 채워보자.</div>`}
       ${emptyPieces}
     </div>
