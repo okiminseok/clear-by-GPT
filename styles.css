@@ -320,6 +320,74 @@ button:disabled {
   color: var(--muted);
 }
 
+.menu-item-head:disabled {
+  color: var(--ink);
+  opacity: 1;
+}
+
+.ongoing-list {
+  display: grid;
+  gap: 9px;
+}
+
+.ongoing-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  border-radius: 16px;
+  padding: 5px;
+  background: color-mix(in srgb, var(--panel) 84%, transparent);
+}
+
+.ongoing-main {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  border-radius: 12px;
+  padding: 9px 10px;
+  color: inherit;
+  text-align: left;
+}
+
+.ongoing-main span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.ongoing-main em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.ongoing-delete {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.ongoing-empty {
+  display: grid;
+  min-height: 72px;
+  place-items: center;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
 .topbar-actions {
   flex: 0 0 auto;
   display: flex;
@@ -375,8 +443,8 @@ button:disabled {
 .home {
   display: grid;
   min-height: calc(100svh - 36px);
-  grid-template-rows: auto auto auto auto 1fr;
-  gap: 13px;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 16px;
 }
 
 .ad-slot {
@@ -397,8 +465,14 @@ button:disabled {
   margin-top: 4px;
 }
 
+.home-focus {
+  display: grid;
+  gap: 14px;
+  padding: clamp(8px, 2svh, 18px) 0 2px;
+}
+
 .hero {
-  padding-top: clamp(4px, 1.6svh, 14px);
+  padding-top: 0;
 }
 
 .hero h1 {
@@ -449,6 +523,7 @@ button:disabled {
     0 12px 30px rgba(55, 48, 38, 0.08),
     3px 4px 0 color-mix(in srgb, var(--title-edge) 78%, transparent);
   overflow: hidden;
+  isolation: isolate;
 }
 
 .task-form:focus-within {
@@ -1107,6 +1182,14 @@ button.progress-segment {
   font-weight: 750;
 }
 
+.runner-meta strong {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--ink) 68%, var(--muted));
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
 .step-stage {
   position: relative;
   display: grid;
@@ -1602,11 +1685,42 @@ button.progress-segment {
 .history-list {
   overflow: auto;
   padding: 14px;
+  display: grid;
+  align-content: start;
+  gap: 13px;
 }
 
 .history-list h2 {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 20px;
+}
+
+.history-list .today-board {
+  min-height: 150px;
+}
+
+.history-delete-list {
+  display: grid;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.history-delete-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 62%, transparent);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.history-delete-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .history-item {
@@ -1675,23 +1789,64 @@ button.progress-segment {
 }
 
 .loading-modal {
-  width: min(100%, 360px);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  padding: 24px;
-  background: var(--panel);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(100%, 340px);
+  border: 1px solid color-mix(in srgb, var(--title-edge) 18%, transparent);
+  border-radius: 26px;
+  padding: 26px 24px 24px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--mint) 10%, transparent), transparent 60%),
+    var(--panel);
   text-align: center;
   box-shadow: var(--shadow);
 }
 
-.loader {
-  width: 44px;
-  height: 44px;
-  margin: 0 auto 16px;
-  border: 5px solid var(--track);
-  border-top-color: var(--coral);
-  border-radius: 50%;
-  animation: spin 800ms linear infinite;
+.loading-modal strong {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.loading-modal p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.loader-board {
+  display: grid;
+  grid-template-columns: repeat(4, 22px);
+  gap: 6px;
+  min-height: 46px;
+  align-items: end;
+}
+
+.loader-board span {
+  display: block;
+  height: 26px;
+  border: 1px solid color-mix(in srgb, var(--title-edge) 62%, transparent);
+  border-radius: 8px;
+  background: var(--mint);
+  box-shadow: 1px 2px 0 color-mix(in srgb, var(--title-edge) 45%, transparent);
+  animation: pieceLift 950ms ease-in-out infinite;
+}
+
+.loader-board span:nth-child(2) {
+  height: 36px;
+  animation-delay: 120ms;
+}
+
+.loader-board span:nth-child(3) {
+  height: 22px;
+  animation-delay: 240ms;
+}
+
+.loader-board span:nth-child(4) {
+  height: 32px;
+  animation-delay: 360ms;
 }
 
 .toast {
@@ -1715,6 +1870,17 @@ button.progress-segment {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes pieceLift {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+
+  45% {
+    transform: translateY(-7px) rotate(1deg);
   }
 }
 

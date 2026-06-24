@@ -2,6 +2,7 @@
 
 const STORAGE_KEYS = {
   active: "clear.activeTask.v1",
+  ongoing: "clear.ongoingTasks.v1",
   completed: "clear.completedTasks.v1",
   theme: "clear.theme.v1",
 };
@@ -85,6 +86,7 @@ const DAILY_BOARD_MAX_VISIBLE = 10;
 const state = {
   route: "home",
   activeTask: loadJSON(STORAGE_KEYS.active, null),
+  ongoingTasks: loadJSON(STORAGE_KEYS.ongoing, []),
   completedTasks: loadJSON(STORAGE_KEYS.completed, []),
   selectedDate: todayKey(),
   calendarMonth: startOfMonth(new Date()),
@@ -100,6 +102,7 @@ const state = {
 
 document.documentElement.dataset.theme = state.theme;
 normalizeActiveTask();
+normalizeOngoingTasks();
 
 function loadJSON(key, fallback) {
   try {
@@ -226,7 +229,14 @@ function taskProgress(task) {
   return Math.round((task.done.length / task.steps.length) * 100);
 }
 
+function progressDetail(task) {
+  if (!task?.steps?.length) return "0/0 · 0%";
+  return `${task.done.length}/${task.steps.length} · ${taskProgress(task)}%`;
+}
+
 function persistActive() {
+  state.ongoingTasks = upsertOngoingTask(state.activeTask, state.ongoingTasks);
+  saveJSON(STORAGE_KEYS.ongoing, state.ongoingTasks);
   if (state.activeTask) saveJSON(STORAGE_KEYS.active, state.activeTask);
   else localStorage.removeItem(STORAGE_KEYS.active);
 }
@@ -256,6 +266,9 @@ async function createTask(rawTitle) {
     if (!response.ok) throw new Error(formatAPIError(payload));
 
     const steps = sanitizeSteps(payload.steps, title);
+    if (state.activeTask?.steps?.length && state.activeTask.done.length < state.activeTask.steps.length) {
+      state.ongoingTasks = upsertOngoingTask(state.activeTask, state.ongoingTasks);
+    }
     state.activeTask = {
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       title,
@@ -383,6 +396,32 @@ function normalizeActiveTask() {
   persistActive();
 }
 
+function normalizeOngoingTasks() {
+  const tasks = Array.isArray(state.ongoingTasks) ? state.ongoingTasks : [];
+  const byId = new Map();
+  tasks.forEach((task) => {
+    if (!task?.id || !task.steps?.length) return;
+    byId.set(task.id, task);
+  });
+  if (state.activeTask?.id) byId.set(state.activeTask.id, state.activeTask);
+  state.ongoingTasks = Array.from(byId.values())
+    .filter((task) => task.done.length < task.steps.length)
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0))
+    .slice(0, 20);
+  saveJSON(STORAGE_KEYS.ongoing, state.ongoingTasks);
+}
+
+function upsertOngoingTask(task, tasks = state.ongoingTasks) {
+  const list = Array.isArray(tasks) ? tasks : [];
+  if (!task?.id || !task.steps?.length || task.done.length >= task.steps.length) {
+    return list.filter((item) => item?.id !== task?.id);
+  }
+  const next = [task, ...list.filter((item) => item?.id !== task.id)];
+  return next
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0))
+    .slice(0, 20);
+}
+
 function parseStepVisualObject(value) {
   const source = String(value || "").trim().replace(/,+$/, "");
   if (!source.startsWith("{") || !source.endsWith("}")) return null;
@@ -487,6 +526,7 @@ function completeTask() {
   state.completedTasks = [finishedTask, ...state.completedTasks].slice(0, 400);
   const todayDoneCount = state.completedTasks.filter((completed) => completed.dateKey === todayKey()).length;
   state.activeTask = null;
+  state.ongoingTasks = state.ongoingTasks.filter((item) => item.id !== task.id);
   state.route = "finish";
   state.finishMessage = resolveFinishMessage(pickFinishMessage(todayDoneCount), task.title);
   state.finishIcon = pick(finishIcons);
@@ -630,7 +670,7 @@ function renderTopbar({ back = false } = {}) {
             <button class="topbar-resume" data-action="resume" aria-label="${escapeHTML(resumeTask.title)} 계속하기">
               <span>진행중</span>
               <strong>${escapeHTML(resumeTask.title)}</strong>
-              <em>${taskProgress(resumeTask)}%</em>
+              <em>${progressDetail(resumeTask)}</em>
             </button>
           `
           : ""
@@ -655,14 +695,33 @@ function renderTopbar({ back = false } = {}) {
 }
 
 function renderMenu() {
-  const active = state.activeTask;
+  const activeTasks = state.ongoingTasks.filter((task) => task?.steps?.length && task.done.length < task.steps.length);
   return `
     <div class="menu-backdrop" data-action="close-menu" aria-hidden="true"></div>
     <aside class="side-menu ${state.route === "home" ? "side-menu-home" : ""}" aria-label="목록 메뉴">
-      <button class="menu-item" data-action="ongoing-task" ${active ? "" : "disabled"}>
+      <button class="menu-item menu-item-head" data-action="noop" disabled>
         <span>진행중인 일</span>
-        <strong>${active ? "1" : "0"}</strong>
+        <strong>${activeTasks.length}</strong>
       </button>
+      <div class="ongoing-list">
+        ${
+          activeTasks.length
+            ? activeTasks
+                .map(
+                  (task) => `
+                    <div class="ongoing-item">
+                      <button class="ongoing-main" data-action="ongoing-task" data-id="${escapeHTML(task.id)}">
+                        <span>${escapeHTML(task.title)}</span>
+                        <em>${progressDetail(task)}</em>
+                      </button>
+                      <button class="ongoing-delete" data-action="dismiss-active" data-id="${escapeHTML(task.id)}" aria-label="${escapeHTML(task.title)} 삭제">×</button>
+                    </div>
+                  `,
+                )
+                .join("")
+            : `<div class="ongoing-empty">저장된 진행 작업이 없어.</div>`
+        }
+      </div>
     </aside>
   `;
 }
@@ -680,15 +739,17 @@ function renderHome() {
         <span>AD</span>
       </div>
       ${renderTopbar()}
-      <div class="hero">
-        <h1>Clear</h1>
-        <p>미루고 있는 일을 적어줘!</p>
-      </div>
+      <div class="home-focus">
+        <div class="hero">
+          <h1>Clear</h1>
+          <p>미루고 있는 일을 적어줘!</p>
+        </div>
 
-      <form class="task-form" data-action="new-task-form">
-        <textarea class="task-input" name="task" placeholder="예: 설거지, 방 정리, 컴활책 공부..."></textarea>
-        <button class="submit-arrow" type="submit" aria-label="작게 쪼개기">작게 쪼개기</button>
-      </form>
+        <form class="task-form" data-action="new-task-form">
+          <textarea class="task-input" name="task" placeholder="예: 설거지, 방 정리, 컴활책 공부..."></textarea>
+          <button class="submit-arrow" type="submit" aria-label="작게 쪼개기">작게 쪼개기</button>
+        </form>
+      </div>
 
       <div class="reward-card" data-action="history" role="button" tabindex="0" aria-label="끝낸 일 보기">
         <div class="reward-head">
@@ -850,7 +911,7 @@ function renderRunner() {
       ${renderTopbar({ back: true })}
       <div class="runner-meta">
         <span>${escapeHTML(task.title)}</span>
-        <strong>${progress}%</strong>
+        <strong>${progressDetail(task)}</strong>
       </div>
       ${renderSegmentedProgress(task.steps.length, task.done, task.currentIndex, true)}
       <button class="map-open-button" data-action="map">전체 조각 보기</button>
@@ -875,7 +936,7 @@ function renderFinish() {
       <div class="finish-progress-area">
         <div class="runner-meta">
           <span>완료</span>
-          <strong>100%</strong>
+          <strong>${state.finishTotalSteps || 1}/${state.finishTotalSteps || 1} · 100%</strong>
         </div>
         ${renderSegmentedProgress(state.finishTotalSteps || 1, Array.from({ length: state.finishTotalSteps || 1 }, (_, index) => index))}
       </div>
@@ -965,7 +1026,7 @@ function renderTaskMap() {
       </div>
       <div class="runner-meta">
         <span>${escapeHTML(task.title)}</span>
-        <strong>${progress}%</strong>
+        <strong>${progressDetail(task)}</strong>
       </div>
       ${renderSegmentedProgress(task.steps.length, task.done, task.currentIndex, true)}
       <div class="task-map-copy">
@@ -1004,19 +1065,21 @@ function renderHistory() {
         <h2>${selectedLabel}</h2>
         ${
           selectedItems.length
-            ? selectedItems
-                .map(
-                  (task) => `
-                    <div class="history-item">
-                      <div class="history-item-copy">
-                        <strong>${escapeHTML(task.title)}</strong>
-                        <span>${task.steps.length}개 조각 완료 · ${formatTime(task.completedAt)}</span>
+            ? `
+              ${renderTodayBoard(selectedItems.slice(0, DAILY_BOARD_MAX_VISIBLE), selectedItems.length)}
+              <div class="history-delete-list">
+                ${selectedItems
+                  .map(
+                    (task) => `
+                      <div class="history-delete-row">
+                        <span>${escapeHTML(task.title)} · ${formatTime(task.completedAt)}</span>
+                        <button class="history-delete" data-action="delete-completed" data-id="${escapeHTML(task.id)}" aria-label="${escapeHTML(task.title)} 삭제">×</button>
                       </div>
-                      <button class="history-delete" data-action="delete-completed" data-id="${escapeHTML(task.id)}" aria-label="${escapeHTML(task.title)} 삭제">×</button>
-                    </div>
-                  `,
-                )
-                .join("")
+                    `,
+                  )
+                  .join("")}
+              </div>
+            `
             : `<div class="empty">이 날은 아직 비어 있어.</div>`
         }
       </div>
@@ -1082,11 +1145,19 @@ function formatMonthLabel(date) {
 }
 
 function renderLoading() {
+  const loadingLines = [
+    "첫 조각을 아주 작게 만드는 중",
+    "시작하기 쉬운 순서로 정리하는 중",
+    "지금 할 수 있는 크기로 낮추는 중",
+  ];
   return `
     <div class="modal-backdrop" role="status" aria-live="polite">
       <div class="loading-modal">
-        <div class="loader"></div>
-        <strong>할일을 쪼개는 중 입니다</strong>
+        <div class="loader-board" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <strong>작게 쪼개는 중</strong>
+        <p>${escapeHTML(pick(loadingLines))}</p>
       </div>
     </div>
   `;
@@ -1148,6 +1219,7 @@ function bindEvents() {
 
 function handleAction(element) {
   const action = element.dataset.action;
+  if (action === "noop") return;
 
   if (action === "home") restartHome();
   if (action === "resume") resumeActiveTask();
@@ -1167,8 +1239,8 @@ function handleAction(element) {
   if (action === "theme") toggleTheme();
   if (action === "toggle-menu") toggleMenu();
   if (action === "close-menu") closeMenu();
-  if (action === "ongoing-task") openOngoingTask();
-  if (action === "dismiss-active") dismissActiveTask();
+  if (action === "ongoing-task") openOngoingTask(element.dataset.id);
+  if (action === "dismiss-active") dismissActiveTask(element.dataset.id);
   if (action === "delete-completed") deleteCompletedTask(element.dataset.id);
   if (action === "board-detail") showBoardDetail(element.dataset.id);
 
@@ -1218,8 +1290,10 @@ function closeMenu() {
   render();
 }
 
-function openOngoingTask() {
-  if (!state.activeTask) return;
+function openOngoingTask(id = null) {
+  const selected = id ? state.ongoingTasks.find((task) => task.id === id) : state.activeTask;
+  if (!selected) return;
+  state.activeTask = selected;
   resumeActiveTask();
 }
 
@@ -1231,14 +1305,16 @@ function resumeActiveTask() {
   render();
 }
 
-function dismissActiveTask() {
-  if (!state.activeTask) return;
+function dismissActiveTask(id = null) {
+  const targetId = id || state.activeTask?.id;
+  if (!targetId) return;
   const confirmed = window.confirm("진행중인 일을 지울까요?");
   if (!confirmed) return;
-  state.activeTask = null;
+  state.ongoingTasks = state.ongoingTasks.filter((task) => task.id !== targetId);
+  if (state.activeTask?.id === targetId) state.activeTask = null;
   state.menuOpen = false;
   persistActive();
-  setToast("최근 작업을 지웠어.");
+  setToast("진행중인 일을 지웠어.");
 }
 
 function deleteCompletedTask(id) {
