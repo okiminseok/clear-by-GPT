@@ -97,7 +97,6 @@ JSON만:
 }
 ]
 }
-
 `;
 
 module.exports = async function handler(req, res) {
@@ -424,7 +423,6 @@ function normalizeActionText(text) {
 return String(text || "")
 .trim()
 .replace(/명백한\s*/g, "보이는 ")
-.replace(/휴지/g, "쓰레기")
 .replace(/\s+/g, " ");
 }
 
