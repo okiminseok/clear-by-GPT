@@ -1,4 +1,4 @@
-````js
+
 const MAX_STEPS = 25;
 const MAX_STEP_TEXT_LENGTH = 40;
 const MAX_DISPLAY_TITLE_LENGTH = 20;
@@ -498,4 +498,4 @@ function blocksAppUse(value) {
 
   return /(놓|내려놓|멀리두|치워|끄|잠그|닫|종료|덮|뒤집|무음|알림끄|방해금지)/.test(text);
 }
-````
+
