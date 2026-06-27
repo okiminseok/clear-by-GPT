@@ -3,7 +3,7 @@ const MAX_STEP_TEXT_LENGTH = 40;
 const MAX_DISPLAY_TITLE_LENGTH = 20;
 const MAX_OUTPUT_TOKENS = 2048;
 
-const API_KEY_NAMES = ["ANTHROPIC_API_KEY"];
+const API_KEY_NAMES = ["CLEAR_API_GEMINI"];
 const FALLBACK_EMOJIS = ["✨", "✦", "💫", "🌟", "⚡", "🎯"];
 
 const AREA_LABELS = {
