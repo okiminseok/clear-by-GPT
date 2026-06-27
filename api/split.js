@@ -117,14 +117,26 @@ Rules
 
 13. Do not combine different object types in one step.
 
-14. Do not send an object to the wrong destination.
+14. Match each object with a sensible action.
 
-Trash goes to trash.
-Dishes or cups go to the sink.
-Clothes go to a laundry basket or one clothing pile.
+Do not make an object do something that would feel wrong,
+unsafe, wasteful, or unnatural in real life.
 
-If the correct destination is unclear,
-do not name a destination.
+Trash means "쓰레기", not "휴지".
+
+If the correct destination or action is unclear,
+use a simpler action without naming the destination.
+
+Bad:
+Put a cup in the trash.
+Put clothes in a trash bag.
+Throw away something that may not be trash.
+
+Good:
+Pick up one visible object.
+Move one cup.
+Gather one piece of clothing.
+Put one clear trash item into the trash.
 
 15. For broad or messy tasks,
     use enough steps to keep actions small.
