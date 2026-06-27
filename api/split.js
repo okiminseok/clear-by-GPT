@@ -106,12 +106,12 @@ return res.status(405).json({ error: "POST만 사용할 수 있어요." });
 }
 
 const apiKey = getApiKey();
-const model = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5";
+const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 if (!apiKey) {
 return res.status(500).json({
 error:
-"API 키가 연결되지 않았어요. Vercel 환경변수에 ANTHROPIC_API_KEY를 추가하고, 지금 테스트하는 배포 환경을 다시 배포해주세요.",
+"API 키가 연결되지 않았어요. Vercel 환경변수에 CLEAR_API_GEMINI를 추가하고, 지금 테스트하는 배포 환경을 다시 배포해주세요.",
 debug: getEnvDebug(),
 });
 }
@@ -131,27 +131,43 @@ return res.status(400).json({ error: "쪼갤 할 일을 보내주세요." });
 }
 
 try {
-const response = await fetch("https://api.anthropic.com/v1/messages", {
+const response = await fetch(
+`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+{
 method: "POST",
 headers: {
-"x-api-key": apiKey,
-"anthropic-version": "2023-06-01",
+"x-goog-api-key": apiKey,
 "Content-Type": "application/json",
 },
 body: JSON.stringify({
-model,
-max_tokens: MAX_OUTPUT_TOKENS,
-system: SYSTEM_PROMPT,
-messages: [{ role: "user", content: task }],
+systemInstruction: {
+parts: [{ text: SYSTEM_PROMPT }],
+},
+contents: [
+{
+role: "user",
+parts: [{ text: task }],
+},
+],
+generationConfig: {
+maxOutputTokens: MAX_OUTPUT_TOKENS,
+temperature: 0.4,
+responseMimeType: "application/json",
+},
 }),
-});
+},
+);
 
 ```
 const data = await response.json();
 
 if (!response.ok) {
   return res.status(response.status).json({
-    error: data.error?.message || "Anthropic API 요청에 실패했어요.",
+    error:
+      data.error?.message ||
+      data.error?.status ||
+      "Gemini API 요청에 실패했어요.",
+    debug: data,
   });
 }
 
@@ -160,7 +176,7 @@ const result = parseOutputResult(data, task);
 if (!result.steps.length) {
   return res.status(502).json({
     error: "쪼갠 결과를 읽지 못했어요. 다시 시도해주세요.",
-    debug: { raw: parseOutputText(data) },
+    debug: { raw: parseOutputText(data), data },
   });
 }
 
@@ -192,6 +208,13 @@ return acc;
 function parseOutputText(data) {
 if (data.output_text) return data.output_text;
 
+if (Array.isArray(data.candidates)) {
+return data.candidates
+.flatMap((candidate) => candidate.content?.parts || [])
+.map((part) => part.text || "")
+.join("");
+}
+
 if (Array.isArray(data.content)) {
 return data.content
 .map((content) => (content.type === "text" ? content.text || "" : ""))
@@ -206,7 +229,7 @@ return data.output
 
 function parseOutputResult(data, originalGoal = "") {
 const text = parseOutputText(data);
-if (!text) throw new Error("Anthropic 응답이 비어 있어요.");
+if (!text) throw new Error("Gemini 응답이 비어 있어요.");
 
 const parsedResult = parseJSONResult(text, originalGoal);
 if (parsedResult.steps.length) return parsedResult;
