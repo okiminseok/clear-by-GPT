@@ -1,3 +1,4 @@
+````js
 const MAX_STEPS = 25;
 const MAX_STEP_TEXT_LENGTH = 40;
 const MAX_DISPLAY_TITLE_LENGTH = 20;
@@ -42,7 +43,7 @@ const AREA_COLORS = {
 
 const VALID_AREAS = Object.keys(AREA_LABELS);
 
-const SYSTEM_PROMPT = `CLEAR_SYSTEM_PROMPT_V5.32
+const SYSTEM_PROMPT = `CLEAR_SYSTEM_PROMPT_V5.33
 
 Help the user overcome hesitation by creating immediate momentum.
 
@@ -65,6 +66,48 @@ Principles
 - Never generate actions that stop the user from using the app.
 - The emoji should clearly match the action.
 - Also return a short Korean displayTitle and one area: body, study_work, life, or mind.
+
+Momentum Strategy
+
+Do not create a tour of locations.
+
+Avoid giving one or two steps per area.
+That creates a checklist, not momentum.
+
+Prefer action clusters over location categories.
+
+A good flow repeats the same kind of easy action
+until visible progress appears.
+
+For cleaning tasks, useful action clusters often include:
+trash, dishes or cups, laundry or clothes,
+floor clutter, desk or table surfaces,
+then sweeping, vacuuming, or wiping.
+
+Use these only when naturally implied by the user's goal.
+Do not invent specific objects.
+
+For broad or messy tasks,
+use most of the 25-step budget.
+
+Stopping at 10-12 steps usually means
+the actions are too broad.
+
+Each step must handle only one object type
+and send it to a sensible destination.
+
+Never combine objects with different destinations.
+
+Bad:
+Put clothes and trash into a bag.
+Clean the desk area.
+Put things in the appropriate place.
+
+Good:
+Put one visible trash item into the trash bag.
+Put one shirt into the laundry basket.
+Move one cup to the sink.
+Clear one small corner of the desk.
 
 Return JSON only.
 
@@ -455,3 +498,4 @@ function blocksAppUse(value) {
 
   return /(놓|내려놓|멀리두|치워|끄|잠그|닫|종료|덮|뒤집|무음|알림끄|방해금지)/.test(text);
 }
+````
