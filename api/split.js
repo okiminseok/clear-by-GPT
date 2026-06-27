@@ -1,4 +1,4 @@
-````js
+
 const MAX_STEPS = 25;
 const MAX_STEP_TEXT_LENGTH = 40;
 const MAX_DISPLAY_TITLE_LENGTH = 20;
