@@ -77,7 +77,7 @@ const CLEAR_RESPONSE_SCHEMA = {
   },
 };
 
-const SYSTEM_PROMPT = `CLEAR_SYSTEM_PROMPT_GEMINI_V5.42_BALANCED
+const SYSTEM_PROMPT = `CLEAR_SYSTEM_PROMPT_GEMINI_V5.43_BALANCED_LOW_JUDGMENT
 
 너는 CLEAR의 마이크로 행동 엔진이다.
 
@@ -156,6 +156,13 @@ const SYSTEM_PROMPT = `CLEAR_SYSTEM_PROMPT_GEMINI_V5.42_BALANCED
 16. 짧은 한국어 displayTitle과 area도 반환한다.
     - area는 body, study_work, life, mind 중 하나다.
 
+17. 판단이 필요한 대상 표현은 피하라.
+    - "제자리에 없는 물건", "원래 자리에 없는 물건", "필요 없는 물건", "정리할 것", "치울 것", "적절한 곳", "알맞은 곳", "정리할 곳"처럼 사용자가 판단해야 하는 표현은 쓰지 마라.
+    - 대신 "손 가까운 물건", "작은 물건", "눈에 들어온 물건", "보이는 쓰레기", "빈 컵", "접시 하나"처럼 바로 고를 수 있는 표현을 써라.
+    - 목적지가 확실하지 않으면 "제자리에 두기", "원래 자리에 두기"라고 하지 말고, "한쪽으로 옮기기", "옆으로 빼기", "손에 들기"처럼 즉시 가능한 행동으로 써라.
+    - 컵, 접시, 쓰레기처럼 목적지가 명확한 대상만 목적지를 말해라. 예: 빈 컵은 싱크대, 쓰레기는 쓰레기통.
+    - 사용자가 생각해서 분류해야 하는 카드보다, 바로 손이 가는 카드를 우선해라.
+
 출력 전 조용히 검사하라:
 
 - steps가 5개 이상인가?
@@ -167,6 +174,9 @@ const SYSTEM_PROMPT = `CLEAR_SYSTEM_PROMPT_GEMINI_V5.42_BALANCED
 - 사용자가 말하지 않은 구체적 물건이나 장소를 지어내지 않았는가?
 - 여러 대상을 말했는데 한 대상만 하고 끝내지 않았는가?
 - 마지막에 현실적인 마무리감이 있는가?
+- "제자리", "원래 자리", "필요 없는", "정리할 것", "치울 것", "적절한 곳"처럼 사용자가 판단해야 하는 표현이 들어가지 않았는가?
+- 각 단계가 사용자가 바로 고를 수 있는 대상 기준을 갖고 있는가?
+- 목적지가 확실하지 않은데 목적지를 말하지 않았는가?
 
 JSON만 반환하라.
 설명, 마크다운, 코드블록은 절대 쓰지 마라.
@@ -266,7 +276,7 @@ module.exports = async function handler(req, res) {
       return res.status(502).json({
         error: "쪼갠 단계가 너무 적어요. 다시 시도해주세요.",
         debug: {
-          version: "GEMINI_V5.42_BALANCED",
+          version: "GEMINI_V5.43_BALANCED_LOW_JUDGMENT",
           count: result.steps.length,
           retryUsed,
           raw: parseOutputText(finalData),
@@ -279,7 +289,7 @@ module.exports = async function handler(req, res) {
       ...result,
       debugVersion:
         process.env.CLEAR_DEBUG_VERSION === "true"
-          ? "GEMINI_V5.42_BALANCED"
+          ? "GEMINI_V5.43_BALANCED_LOW_JUDGMENT"
           : undefined,
       debugMeta:
         process.env.CLEAR_DEBUG_VERSION === "true"
@@ -681,6 +691,10 @@ function isBadActionText(value) {
 
   if (/옷.*(쓰레기통|쓰레기봉투|봉투에담|봉투에넣)/.test(text)) return true;
   if (/(컵|그릇|접시|설거지).*(쓰레기통|쓰레기봉투|봉투에담|봉투에넣)/.test(text)) {
+    return true;
+  }
+
+  if (/제자리에없는|제자리없는|제자리|원래자리에없는|원래자리|필요없는|정리할것|치울것|알맞은곳|적절한곳|정리할곳/.test(text)) {
     return true;
   }
 
