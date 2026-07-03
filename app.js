@@ -98,6 +98,12 @@ const state = {
   menuOpen: false,
   previousProgress: 0,
   speedTicker: null,
+  stepFeedback: {
+    active: false,
+    stepIndex: null,
+    completedCount: 0,
+  },
+  stepFeedbackTimer: null,
 };
 
 document.documentElement.dataset.theme = state.theme;
@@ -454,6 +460,7 @@ function setRoute(route) {
 
 function moveStep(delta) {
   const task = state.activeTask;
+  if (state.stepFeedback.active) return;
   if (!task) return;
   state.previousProgress = taskProgress(task);
   task.currentIndex = clamp(task.currentIndex + delta, 0, task.steps.length - 1);
@@ -466,6 +473,7 @@ function moveStep(delta) {
 
 function jumpToStep(index) {
   const task = state.activeTask;
+  if (state.stepFeedback.active) return;
   if (!task) return;
   const nextIndex = clamp(Number(index), 0, task.steps.length - 1);
   state.previousProgress = taskProgress(task);
@@ -478,33 +486,79 @@ function jumpToStep(index) {
 
 function completeCurrentStep() {
   const task = state.activeTask;
+  if (state.stepFeedback.active) return;
   if (!task) return;
 
   const index = task.currentIndex;
-  if (!task.done.includes(index)) {
-    state.previousProgress = taskProgress(task);
-    markSpeedWin(task, index);
-    task.done.push(index);
-    task.done.sort((a, b) => a - b);
-  }
-
-  if (task.done.length >= task.steps.length) {
-    completeTask();
+  if (task.done.includes(index)) {
+    const nextIndex = task.steps.findIndex((_, stepIndex) => !task.done.includes(stepIndex));
+    task.currentIndex = nextIndex === -1 ? task.currentIndex : nextIndex;
+    resetSpeedTimer(task);
+    task.updatedAt = new Date().toISOString();
+    persistActive();
+    render();
+    if (state.handsfree) startRecognition();
     return;
   }
 
-  const nextIndex = task.steps.findIndex((_, stepIndex) => !task.done.includes(stepIndex));
-  task.currentIndex = nextIndex === -1 ? task.currentIndex : nextIndex;
-  resetSpeedTimer(task);
+  state.previousProgress = taskProgress(task);
+  markSpeedWin(task, index);
+  task.done.push(index);
+  task.done.sort((a, b) => a - b);
   task.updatedAt = new Date().toISOString();
+  state.stepFeedback = {
+    active: true,
+    stepIndex: index,
+    completedCount: task.done.length,
+  };
+  resetSpeedTimer(task);
   persistActive();
   render();
-  if (state.handsfree) startRecognition();
+  window.clearTimeout(state.stepFeedbackTimer);
+  state.stepFeedbackTimer = window.setTimeout(() => {
+    const currentTask = state.activeTask;
+    if (!currentTask || !state.stepFeedback.active || state.stepFeedback.stepIndex !== index) return;
+    const completedCount = currentTask.done.length;
+    state.stepFeedback = {
+      active: false,
+      stepIndex: null,
+      completedCount: 0,
+    };
+
+    if (completedCount >= currentTask.steps.length) {
+      completeTask();
+      return;
+    }
+
+    const nextIndex = currentTask.steps.findIndex((_, stepIndex) => !currentTask.done.includes(stepIndex));
+    currentTask.currentIndex = nextIndex === -1 ? currentTask.currentIndex : nextIndex;
+    resetSpeedTimer(currentTask);
+    currentTask.updatedAt = new Date().toISOString();
+    persistActive();
+    render();
+    maybeToastStepMilestone(completedCount);
+    if (state.handsfree) startRecognition();
+  }, 520);
+}
+
+function maybeToastStepMilestone(count) {
+  const messages = {
+    5: "5개 움직였어.",
+    10: "여기까지 왔다.",
+    15: "거의 흐름 탔어.",
+  };
+  if (messages[count]) setToast(messages[count]);
 }
 
 function completeTask() {
   const task = state.activeTask;
   if (!task) return;
+  window.clearTimeout(state.stepFeedbackTimer);
+  state.stepFeedback = {
+    active: false,
+    stepIndex: null,
+    completedCount: 0,
+  };
   state.previousProgress = taskProgress(task);
   state.finishSpeedResult = task.speedMode
     ? {
@@ -901,6 +955,7 @@ function renderRunner() {
   }
   const index = task.currentIndex;
   const isDone = task.done.includes(index);
+  const isFeedback = state.stepFeedback.active && state.stepFeedback.stepIndex === index;
   const progress = taskProgress(task);
   assignStepMentions(task);
   persistActive();
@@ -913,17 +968,27 @@ function renderRunner() {
         <span>${escapeHTML(task.title)}</span>
         <strong>${progressDetail(task)}</strong>
       </div>
-      ${renderSegmentedProgress(task.steps.length, task.done, task.currentIndex, true)}
+      ${renderSegmentedProgress(task.steps.length, task.done, task.currentIndex, true, state.stepFeedback.stepIndex)}
       <button class="map-open-button" data-action="map">전체 조각 보기</button>
-      <div class="step-stage ${isDone ? "completed-step" : ""}">
-        <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
-        <p class="step-text">${escapeHTML(step.text)}</p>
-        ${task.speedMode ? `<div class="clear-rule">${escapeHTML(speedRuleText(task))}</div>` : ""}
+      <div class="step-stage ${isDone ? "completed-step" : ""} ${isFeedback ? "step-feedback-active" : ""}">
+        ${
+          isFeedback
+            ? `
+              <div class="step-done-burst" aria-hidden="true">✓</div>
+              <p class="step-text step-feedback-title">됐다</p>
+              <div class="step-feedback-copy">하나 움직였어</div>
+            `
+            : `
+              <div class="step-emoji" aria-hidden="true">${escapeHTML(step.icon)}</div>
+              <p class="step-text">${escapeHTML(step.text)}</p>
+              ${task.speedMode ? `<div class="clear-rule">${escapeHTML(speedRuleText(task))}</div>` : ""}
+            `
+        }
       </div>
       <div class="runner-actions">
-        <button class="secondary-button" data-action="prev" ${index === 0 ? "disabled" : ""}>이전 칸</button>
-        <button class="secondary-button" data-action="next" ${index === task.steps.length - 1 ? "disabled" : ""}>다음 칸</button>
-        <button class="done-button ${isDone ? "completed" : ""}" data-action="done">${isDone ? "다음 미완료" : "클리어"}</button>
+        <button class="secondary-button" data-action="prev" ${index === 0 || isFeedback ? "disabled" : ""}>이전 칸</button>
+        <button class="secondary-button" data-action="next" ${index === task.steps.length - 1 || isFeedback ? "disabled" : ""}>다음 칸</button>
+        <button class="done-button ${isDone ? "completed" : ""} ${isFeedback ? "feedback-done" : ""}" data-action="done" ${isFeedback ? "disabled" : ""}>${isFeedback ? "✓ 됐다" : isDone ? "다음 미완료" : "클리어"}</button>
       </div>
     </section>
   `;
@@ -958,7 +1023,7 @@ function renderFinish() {
   `;
 }
 
-function renderSegmentedProgress(total, doneIndexes = [], currentIndex = -1, interactive = false) {
+function renderSegmentedProgress(total, doneIndexes = [], currentIndex = -1, interactive = false, justDoneIndex = null) {
   const doneSet = new Set(doneIndexes);
   const count = clamp(Number(total) || 1, 1, MAX_STEPS);
   return `
@@ -966,7 +1031,8 @@ function renderSegmentedProgress(total, doneIndexes = [], currentIndex = -1, int
       ${Array.from({ length: count }, (_, index) => {
         const isDone = doneSet.has(index);
         const isCurrent = index === currentIndex;
-        const className = `progress-segment ${isDone ? "done" : ""} ${isCurrent ? "current" : ""}`;
+        const isJustDone = state.stepFeedback.active && index === justDoneIndex;
+        const className = `progress-segment ${isDone ? "done" : ""} ${isCurrent ? "current" : ""} ${isJustDone ? "just-done" : ""}`;
         const label = `${index + 1}번째 조각${isDone ? ", 클리어됨" : ""}${isCurrent ? ", 현재" : ""}`;
         return interactive
           ? `<button class="${className}" data-action="select-step" data-index="${index}" aria-label="${label}"></button>`
